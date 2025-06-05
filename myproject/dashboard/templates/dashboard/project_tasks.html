@@ -1,0 +1,25 @@
+    {% extends 'dashboard/project_base.html' %}
+{% block content %}
+<h2>Задачи для проекта: {{ project.title }}</h2>
+
+{% if form %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Создать задачу</button>
+</form>
+{% endif %}
+
+<ul>
+  {% for task in tasks %}
+    <li>
+      <strong>{{ task.title }}</strong> ({{ task.deadline }})
+      <br> {{ task.description }}
+      <br> Создано: {{ task.created_by.get_full_name }} в {{ task.created_at }}
+      {% if task.file %}
+        <br><a href="{{ task.file.url }}">Скачать файл</a>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+{% endblock %}

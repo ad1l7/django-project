@@ -1,0 +1,25 @@
+{% extends 'dashboard/project_base.html' %}
+{% block content %}
+<div class="section">
+  <h3 class="section-title"><i class="fas fa-user-slash"></i> Отклонённые участники</h3>
+
+  {% if rejected_participants %}
+    {% for p in rejected_participants %}
+      <div class="participant-card">
+        <div class="participant-avatar">{{ p.worker.get_initials }}</div>
+        <div class="participant-info">
+          <div class="participant-name">{{ p.worker.get_full_name }}</div>
+          <div class="participant-status status-rejected">Отклонен</div>
+        </div>
+        <form method="post" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="participant_id" value="{{ p.id }}">
+          <button name="reinvite_participant" class="btn btn-success btn-sm">Пригласить снова</button>
+        </form>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-muted">Нет отклонённых участников.</p>
+  {% endif %}
+</div>
+{% endblock %}

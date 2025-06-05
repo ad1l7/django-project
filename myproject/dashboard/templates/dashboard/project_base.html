@@ -1,0 +1,242 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Проект: {{ project.title }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'dashboard/css/project.css' %}">
+
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #4cc9f0;
+      --success: #06d6a0;
+      --warning: #ffd166;
+      --danger: #ef476f;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --light-gray: #e9ecef;
+      --sidebar-width: 280px;
+      --header-height: 70px;
+      --transition: all 0.3s ease;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: #f8fafc;
+      color: var(--dark);
+      padding-top: var(--header-height);
+      overflow-x: hidden;
+    }
+    
+    .header {
+      height: var(--header-height);
+      background: linear-gradient(120deg, var(--primary), var(--secondary));
+      box-shadow: var(--shadow);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      padding: 0 2rem;
+      color: white;
+    }
+    
+    .header h1 {
+      font-weight: 600;
+      font-size: 1.5rem;
+      margin: 0;
+      display: flex;
+      align-items: center;
+    }
+    
+    .header h1 i {
+      margin-right: 12px;
+      font-size: 1.8rem;
+    }
+    
+    .sidebar {
+      width: var(--sidebar-width);
+      background: white;
+      border-right: 1px solid var(--light-gray);
+      height: calc(100vh - var(--header-height));
+      position: fixed;
+      top: var(--header-height);
+      left: 0;
+      overflow-y: auto;
+      padding: 1.5rem 0;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      z-index: 900;
+    }
+    
+    .sidebar-header {
+      padding: 0 1.5rem 1.5rem;
+      border-bottom: 1px solid var(--light-gray);
+    }
+    
+    .sidebar-header h3 {
+      font-weight: 600;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+    }
+    
+    .sidebar-header h3 i {
+      margin-right: 10px;
+      color: var(--secondary);
+    }
+    
+    .sidebar-menu {
+      list-style: none;
+      padding: 1rem 0;
+    }
+    
+    .sidebar-menu li a {
+      display: flex;
+      align-items: center;
+      padding: 0.8rem 1.5rem;
+      color: var(--dark);
+      text-decoration: none;
+      transition: var(--transition);
+      font-weight: 500;
+      border-left: 4px solid transparent;
+    }
+    
+    .sidebar-menu li a:hover,
+    .sidebar-menu li a.active {
+      background-color: rgba(67, 97, 238, 0.05);
+      color: var(--primary);
+      padding-left: 2rem;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .sidebar-menu li a i {
+      width: 24px;
+      margin-right: 12px;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+    
+    .content {
+      margin-left: var(--sidebar-width);
+      padding: 2rem;
+      transition: var(--transition);
+    }
+    
+    @media (max-width: 992px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      
+      .content {
+        margin-left: 0;
+      }
+      
+      .sidebar.active {
+        transform: translateX(0);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .content {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Заголовок -->
+  <header class="header">
+    <h1><i class="fas fa-project-diagram"></i> Проект: {{ project.title }}</h1>
+  </header>
+  
+  <!-- Боковая панель -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h3><i class="fas fa-tachometer-alt"></i> Панель управления</h3>
+  </div>
+  <ul class="sidebar-menu">
+
+    {# Ссылка "Все задачи" работает при наличии project #}
+    {% if project %}
+      <li>
+        
+        <a href="{% url 'dashboard:tasks_list' %}?project_id={{ project.id }}"
+           class="{% if request.resolver_match.url_name == 'tasks_list' %}active{% endif %}">
+          <i class="fas fa-tasks"></i> Все задачи
+        </a>
+      </li>
+    
+      <li>
+        <a href="{% url 'dashboard:project_overview' project.id %}"
+           class="{% if request.resolver_match.url_name == 'project_overview' %}active{% endif %}">
+          <i class="fas fa-info-circle"></i> Обзор проекта
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'dashboard:project_chat' project.id %}"
+           class="{% if request.resolver_match.url_name == 'project_chat' %}active{% endif %}">
+          <i class="fas fa-comments"></i> Чат проекта
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'dashboard:project_participants' project.id %}"
+           class="{% if request.resolver_match.url_name == 'project_participants' %}active{% endif %}">
+          <i class="fas fa-users"></i> Участники
+        </a>
+      </li>
+
+      {% if request.user.role in 'DIRECTOR ADMIN' %}
+      <li>
+        <a href="{% url 'dashboard:rejected_participants' project.id %}"
+           class="{% if request.resolver_match.url_name == 'rejected_participants' %}active{% endif %}">
+          <i class="fas fa-user-slash"></i> Отклонённые
+        </a>
+      </li>
+      {% endif %}
+    {% endif %}
+    
+  </ul>
+</div>
+
+  <!-- Основной контент -->
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Анимация для сообщений чата
+    document.querySelectorAll('.message').forEach((message, index) => {
+      message.style.animationDelay = `${index * 0.1}s`;
+    });
+    
+    // Эффект при наведении на карточки
+    document.querySelectorAll('.detail-card').forEach(card => {
+      card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+      });
+      
+      card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+      });
+    });
+  </script>
+</body>
+</html>

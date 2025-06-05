@@ -1,0 +1,152 @@
+{% extends 'dashboard/project_base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Все задачи проекта "{{ project.title }}"</h3>
+  {% if tasks %}
+    <ul class="list-group">
+      {% for task in tasks %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+          <div>
+            <strong>{{ task.title }}</strong><br>
+            <small>Срок: {{ task.deadline|default:"Нет информации" }}</small><br>
+            <small>Комментарий: {{ task.description|default:"Нет информации" }}</small><br>
+            <small>Файл: {% if task.file %}<a href="{{ task.file.url }}">Скачать</a>{% else %}Нет информации{% endif %}</small><br>
+            <small>Награда: {{ task.reward|default:"Нет информации" }}</small>
+          </div>
+          {% if request.user.role == 'DIRECTOR' or request.user.role == 'ADMIN' %}
+          <div class="dropdown">
+            <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editTaskModal{{ task.id }}">Изменить</a></li>
+              <li><a class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteTaskModal{{ task.id }}">Удалить</a></li>
+            </ul>
+          </div>
+          {% endif %}
+        </li>
+
+        <!-- Модалка редактирования -->
+        <div class="modal fade" id="editTaskModal{{ task.id }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form method="post" enctype="multipart/form-data" action="{% url 'dashboard:edit_task' task.id %}?project_id={{ project.id }}">
+                {% csrf_token %}
+                <div class="modal-header">
+                  <h5 class="modal-title">Редактировать задачу</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label class="form-label">Название</label>
+                    <input type="text" name="title" class="form-control" value="{{ task.title }}" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Срок</label>
+                    <input type="date" name="deadline" class="form-control" value="{{ task.deadline|date:'Y-m-d' }}" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Комментарий</label>
+                    <textarea name="description" class="form-control" rows="3">{{ task.description }}</textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Награда</label>
+                    <input type="number" name="reward" class="form-control" value="{{ task.reward }}">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Файл</label>
+                    <input type="file" name="file" class="form-control">
+                    {% if task.file %}<small>Текущий: <a href="{{ task.file.url }}">Скачать</a></small>{% endif %}
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                  <button type="submit" class="btn btn-success">Сохранить</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Модалка удаления -->
+        <div class="modal fade" id="deleteTaskModal{{ task.id }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <form method="post" action="{% url 'dashboard:delete_task' task.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                  <h5 class="modal-title">Удалить задачу?</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <p>Вы уверены, что хотите удалить задачу "<strong>{{ task.title }}</strong>"?</p>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                  <button type="submit" class="btn btn-danger">Удалить</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Нет задач для отображения.</p>
+  {% endif %}
+</div>
+
+{% if request.user.role == 'DIRECTOR' or request.user.role == 'ADMIN' %}
+  <div class="text-end mt-3">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+      <i class="fas fa-plus"></i> Создать задачу
+    </button>
+  </div>
+
+  <!-- Модальное окно создания задачи -->
+  <div class="modal fade" id="createTaskModal" tabindex="-1" aria-labelledby="createTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="create_task" value="1">
+          <input type="hidden" name="project_id" value="{{ project.id }}">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createTaskModalLabel">Создать задачу</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="title" class="form-label">Название задачи</label>
+              <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            <div class="mb-3">
+              <label for="deadline" class="form-label">Срок выполнения</label>
+              <input type="date" class="form-control" id="deadline" name="deadline" required>
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Комментарий</label>
+              <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="reward" class="form-label">Награда (баллы)</label>
+              <input type="number" class="form-control" id="reward" name="reward" min="0">
+            </div>
+            <div class="mb-3">
+              <label for="file" class="form-label">Прикрепить файл</label>
+              <input type="file" class="form-control" id="file" name="file">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            <button type="submit" class="btn btn-success">Сохранить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

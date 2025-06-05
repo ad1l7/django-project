@@ -1,0 +1,59 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'dashboard/css/header.css' %}">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold text-white" href="{% url 'dashboard:home' %}">MyProject</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        {% if request.user.role == 'DIRECTOR' %}
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:home' %}">Главная</a></li>
+          {% if project %}
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:project_overview' project.id %}">Проект</a></li>
+          {% else %}
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:projects' %}">Проекты</a></li>
+          {% endif %}
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:admins' %}">Администраторы</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:workers' %}">Работники</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="#">Профиль</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#confirmLogoutModal">Выход</a></li>
+        {% elif request.user.role == 'ADMIN' %}
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:home' %}">Главная</a></li>
+          {% if project %}
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:project_overview' project.id %}">Проект</a></li>
+          {% else %}
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:projects' %}">Проекты</a></li>
+          {% endif %}
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:workers' %}">Работники</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="#">Профиль</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#confirmLogoutModal">Выход</a></li>
+        {% else %}
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:home' %}">Главная</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:projects' %}">Проекты</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="#">Профиль</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#confirmLogoutModal">Выход</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="modal fade" id="confirmLogoutModal" tabindex="-1" aria-labelledby="confirmLogoutLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmLogoutLabel">Подтверждение выхода</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        Вы действительно хотите выйти из аккаунта?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <a href="{% url 'dashboard:logout' %}" class="btn btn-danger">Выйти</a>
+      </div>
+    </div>
+  </div>
+</div>
