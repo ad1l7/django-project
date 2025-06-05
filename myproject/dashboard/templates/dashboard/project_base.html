@@ -3,6 +3,8 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Проект: {{ project.title }}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -172,47 +174,65 @@
     <h3><i class="fas fa-tachometer-alt"></i> Панель управления</h3>
   </div>
   <ul class="sidebar-menu">
-
-    {# Ссылка "Все задачи" работает при наличии project #}
-    {% if project %}
-      <li>
-        
-        <a href="{% url 'dashboard:tasks_list' %}?project_id={{ project.id }}"
-           class="{% if request.resolver_match.url_name == 'tasks_list' %}active{% endif %}">
-          <i class="fas fa-tasks"></i> Все задачи
-        </a>
-      </li>
-    
-      <li>
-        <a href="{% url 'dashboard:project_overview' project.id %}"
-           class="{% if request.resolver_match.url_name == 'project_overview' %}active{% endif %}">
-          <i class="fas fa-info-circle"></i> Обзор проекта
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'dashboard:project_chat' project.id %}"
-           class="{% if request.resolver_match.url_name == 'project_chat' %}active{% endif %}">
-          <i class="fas fa-comments"></i> Чат проекта
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'dashboard:project_participants' project.id %}"
-           class="{% if request.resolver_match.url_name == 'project_participants' %}active{% endif %}">
-          <i class="fas fa-users"></i> Участники
-        </a>
-      </li>
-
-      {% if request.user.role in 'DIRECTOR ADMIN' %}
-      <li>
-        <a href="{% url 'dashboard:rejected_participants' project.id %}"
-           class="{% if request.resolver_match.url_name == 'rejected_participants' %}active{% endif %}">
-          <i class="fas fa-user-slash"></i> Отклонённые
-        </a>
-      </li>
-      {% endif %}
+{% if project %}
+  <li>
+    <a href="{% url 'dashboard:my_tasks' project.id %}"
+       class="{% if request.resolver_match.url_name == 'my_tasks' %}active{% endif %}">
+      <i class="fas fa-user-check"></i> Мои задачи
+    </a>
+  </li>
+{% endif %}
+{% if request.user.role in 'DIRECTOR ADMIN' %}
+<li>
+  <a href="{% url 'dashboard:submitted_tasks' project.id %}"
+     class="{% if request.resolver_match.url_name == 'submitted_tasks' %}active{% endif %}">
+    <i class="fas fa-clipboard-check"></i> На проверке
+  </a>
+</li>
+{% endif %}
+{% if request.user.role in 'DIRECTOR ADMIN' %}
+<li>
+  <a href="{% url 'dashboard:completed_tasks' project.id %}"
+     class="{% if request.resolver_match.url_name == 'completed_tasks' %}active{% endif %}">
+    <i class="fas fa-check-circle"></i> Завершённые задачи
+  </a>
+</li>
+{% endif %}
+  {% if project %}
+    <li>
+      <a href="{% url 'dashboard:tasks_list' %}?project_id={{ project.id }}"
+         class="{% if request.resolver_match.url_name == 'tasks_list' %}active{% endif %}">
+        <i class="fas fa-tasks"></i> Все задачи
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'dashboard:project_overview' project.id %}"
+         class="{% if request.resolver_match.url_name == 'project_overview' %}active{% endif %}">
+        <i class="fas fa-info-circle"></i> Обзор проекта
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'dashboard:project_chat' project.id %}"
+         class="{% if request.resolver_match.url_name == 'project_chat' %}active{% endif %}">
+        <i class="fas fa-comments"></i> Чат проекта
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'dashboard:project_participants' project.id %}"
+         class="{% if request.resolver_match.url_name == 'project_participants' %}active{% endif %}">
+        <i class="fas fa-users"></i> Участники
+      </a>
+    </li>
+    {% if request.user.role in 'DIRECTOR ADMIN' %}
+    <li>
+      <a href="{% url 'dashboard:rejected_participants' project.id %}"
+         class="{% if request.resolver_match.url_name == 'rejected_participants' %}active{% endif %}">
+        <i class="fas fa-user-slash"></i> Отклонённые
+      </a>
+    </li>
     {% endif %}
-    
-  </ul>
+  {% endif %}
+</ul>
 </div>
 
   <!-- Основной контент -->

@@ -7,9 +7,17 @@ from users.forms import AdminRegisterForm, WorkerRegisterForm
 from .models import Project, ProjectParticipant, ProjectMessage
 from .forms import ProjectForm, ProjectApplicationForm, ProjectMessageForm
 from .models import Task
+from django.views.decorators.http import require_POST
 from .forms import TaskForm
 from django.utils.decorators import method_decorator
 from functools import wraps
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from django.http import HttpResponseForbidden
+from .models import Task
+from .forms import TaskForm  # если понадобится в модалке
+
+
 import logging
 def is_director(user):
     return user.is_authenticated and user.role == User.DIRECTOR
@@ -256,29 +264,19 @@ def tasks_list(request):
             project = None
 
     tasks = Task.objects.filter(project=project) if project else Task.objects.none()
+    form = TaskForm(request.POST or None, request.FILES or None)
 
-    if request.method == 'POST' and request.user.role in ('DIRECTOR', 'ADMIN'):
-        if request.POST.get('create_task'):
-            title = request.POST.get('title')
-            deadline = request.POST.get('deadline')
-            description = request.POST.get('description')
-            file = request.FILES.get('file')
-            reward = request.POST.get('reward') or 0
-
-            task = Task.objects.create(
-                project=project,
-                title=title,
-                deadline=deadline,
-                description=description,
-                file=file,
-                reward=reward,
-                created_by=request.user
-            )
-            return redirect(f'{request.path}?project_id={project.id}')
+    if request.method == 'POST' and form.is_valid() and request.user.role in ('DIRECTOR', 'ADMIN'):
+        task = form.save(commit=False)
+        task.project = project
+        task.created_by = request.user
+        task.save()
+        return redirect(f'{request.path}?project_id={project.id}')
 
     return render(request, 'dashboard/tasks_list.html', {
         'project': project,
         'tasks': tasks,
+        'form': form,
     })
 
 
@@ -298,4 +296,103 @@ def rejected_participants(request, pk):
     return render(request, 'dashboard/rejected_participants.html', {
         'project': project,
         'rejected_participants': rejected,
+    })
+from django.views.decorators.http import require_POST
+
+@require_POST
+@login_required
+def take_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if task.status == 'free':
+        task.status = 'in_progress'
+        task.assigned_to = request.user
+        task.save()
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+@project_access_required
+def my_tasks_view(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    tasks = Task.objects.filter(assigned_to=request.user, project=project)
+
+    return render(request, 'dashboard/my_tasks.html', {
+        'project': project,
+        'tasks': tasks,
+    })
+@login_required
+def my_tasks(request):
+    tasks = Task.objects.filter(assigned_to=request.user)
+    return render(request, 'dashboard/my_tasks.html', {'tasks': tasks})
+
+@require_POST
+@login_required
+def drop_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id, assigned_to=request.user)
+    task.assigned_to = None
+    task.status = 'free'
+    task.save()
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+@require_POST
+@login_required
+def submit_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id, assigned_to=request.user)
+
+    comment = request.POST.get('comment')
+    file = request.FILES.get('file')
+
+    if file or comment:
+        task.status = 'submitted'
+        task.submitted_comment = comment
+        if file:
+            task.submitted_file = file
+        task.save()
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+@login_required
+def submitted_tasks_view(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+
+    tasks = Task.objects.filter(status='submitted', project=project).select_related('assigned_to')
+
+    return render(request, 'dashboard/submitted_tasks.html', {
+        'tasks': tasks,
+        'project': project,
+    })
+
+@login_required
+def approve_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if request.user.role not in ['ADMIN', 'DIRECTOR']:
+        return HttpResponseForbidden("Нет доступа")
+
+    if request.method == 'POST':
+        task.status = 'done'
+        task.save()
+    return redirect('dashboard:submitted_tasks', pk=task.project.id)
+
+@login_required
+def reject_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if request.user.role not in ['ADMIN', 'DIRECTOR']:
+        return HttpResponseForbidden("Нет доступа")
+
+    if request.method == 'POST':
+        task.status = 'in_progress'
+        task.submitted_comment = request.POST.get('comment', '')
+        if request.FILES.get('file'):
+            task.submitted_file = request.FILES['file']
+        task.save()
+    return redirect('dashboard:submitted_tasks', pk=task.project.id)
+@login_required
+def completed_tasks_view(request, pk):
+    if request.user.role not in ['ADMIN', 'DIRECTOR']:
+        return HttpResponseForbidden("Нет доступа")
+
+    project = get_object_or_404(Project, pk=pk)
+
+    tasks = Task.objects.filter(status='done', project=project).select_related('assigned_to')
+
+    return render(request, 'dashboard/completed_tasks.html', {
+        'tasks': tasks,
+        'project': project,
     })

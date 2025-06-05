@@ -1,0 +1,23 @@
+{% extends 'dashboard/project_base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Завершённые задачи</h3>
+  {% if tasks %}
+    <ul class="list-group">
+      {% for task in tasks %}
+        <li class="list-group-item">
+          <strong>{{ task.title }}</strong> — проект: {{ task.project.title }}<br>
+          Исполнитель: {{ task.assigned_to.get_full_name }}<br>
+          Завершено<br>
+          {% if task.submitted_file %}
+            Финальный файл: <a href="{{ task.submitted_file.url }}">Скачать</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Пока нет завершённых задач.</p>
+  {% endif %}
+</div>
+{% endblock %}

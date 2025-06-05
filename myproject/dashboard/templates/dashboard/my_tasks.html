@@ -1,0 +1,104 @@
+{% extends 'dashboard/project_base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Мои задачи</h3>
+  {% if tasks %}
+    <ul class="list-group">
+      {% for task in tasks %}
+        <li class="list-group-item">
+          <strong>{{ task.title }}</strong> — статус: {{ task.get_status_display }}
+          <br><small>Проект: {{ task.project.title }}</small>
+          <br><small>Срок: {{ task.deadline }}</small><br>
+
+          {% if task.status == 'submitted' %}
+            <div class="mt-2 text-warning">
+              <i class="fas fa-hourglass-half"></i> Задача отправлена на проверку
+            </div>
+
+          {% elif task.status == 'done' %}
+            <div class="mt-2 text-success">
+              <i class="fas fa-check-circle"></i> Задача выполнена
+            </div>
+
+          {% elif task.status == 'in_progress' %}
+            <!-- Кнопка "Отказаться" -->
+            <button class="btn btn-sm btn-outline-danger mt-2" data-bs-toggle="modal" data-bs-target="#dropTaskModal{{ task.id }}">
+              Отказаться
+            </button>
+
+            <!-- Кнопка "Выполнить" -->
+            <button class="btn btn-sm btn-outline-success mt-2" data-bs-toggle="modal" data-bs-target="#submitTaskModal{{ task.id }}">
+              Выполнить
+            </button>
+
+            {% if task.submitted_comment %}
+              <div class="mt-2 alert alert-warning">
+                <strong>Комментарий после отклонения:</strong><br>
+                <em>{{ task.submitted_comment }}</em><br>
+                {% if task.submitted_file %}
+                  Файл: <a href="{{ task.submitted_file.url }}" target="_blank">Скачать</a>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endif %}
+
+          <!-- Модальное окно "Отказаться" -->
+          <div class="modal fade" id="dropTaskModal{{ task.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <form method="post" action="{% url 'dashboard:drop_task' task.id %}">
+                  {% csrf_token %}
+                  <div class="modal-header">
+                    <h5 class="modal-title">Отказаться от задачи?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p>Вы уверены, что хотите отказаться от задачи "<strong>{{ task.title }}</strong>"?</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+                    <button type="submit" class="btn btn-danger">Да, отказаться</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Модальное окно "Выполнить" -->
+          <div class="modal fade" id="submitTaskModal{{ task.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <form method="post" action="{% url 'dashboard:submit_task' task.id %}" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  <div class="modal-header">
+                    <h5 class="modal-title">Отправить задачу на проверку</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="mb-3">
+                      <label for="file{{ task.id }}" class="form-label">Файл</label>
+                      <input type="file" class="form-control" name="file" id="file{{ task.id }}" required>
+                    </div>
+                    <div class="mb-3">
+                      <label for="comment{{ task.id }}" class="form-label">Комментарий</label>
+                      <textarea class="form-control" name="comment" id="comment{{ task.id }}" rows="3" placeholder="Опишите, что вы сделали..."></textarea>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-success">Отправить</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>У вас пока нет задач.</p>
+  {% endif %}
+</div>
+{% endblock %}

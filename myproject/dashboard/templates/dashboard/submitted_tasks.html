@@ -1,0 +1,85 @@
+{% extends 'dashboard/project_base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h3>Задачи на проверке</h3>
+  {% if tasks %}
+    <ul class="list-group">
+      {% for task in tasks %}
+        <li class="list-group-item">
+          <strong>{{ task.title }}</strong> — проект: {{ task.project.title }}<br>
+          Исполнитель: {{ task.assigned_to.get_full_name }}<br>
+          Комментарий: {{ task.submitted_comment|default:"-" }}<br>
+          {% if task.submitted_file %}
+            Файл: <a href="{{ task.submitted_file.url }}">Скачать</a><br>
+          {% endif %}
+
+          {% if request.user.role in 'DIRECTOR ADMIN' %}
+          <div class="mt-2">
+            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#confirmModal{{ task.id }}">
+              Подтвердить
+            </button>
+            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ task.id }}">
+              Отклонить
+            </button>
+          </div>
+          {% endif %}
+        </li>
+
+        <!-- Модалка подтверждения -->
+        <div class="modal fade" id="confirmModal{{ task.id }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <form method="post" action="{% url 'dashboard:approve_task' task.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                  <h5 class="modal-title">Подтвердить выполнение?</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  Вы уверены, что хотите подтвердить выполнение задачи "{{ task.title }}"?
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+                  <button type="submit" class="btn btn-success">Да, подтвердить</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Модалка отклонения -->
+        <div class="modal fade" id="rejectModal{{ task.id }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <form method="post" enctype="multipart/form-data" action="{% url 'dashboard:reject_task' task.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                  <h5 class="modal-title">Отклонить задачу?</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label for="comment">Комментарий:</label>
+                    <textarea class="form-control" name="comment" rows="3"></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label for="file">Файл (по желанию):</label>
+                    <input type="file" class="form-control" name="file">
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                  <button type="submit" class="btn btn-danger">Отклонить</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Нет задач на проверке.</p>
+  {% endif %}
+</div>
+{% endblock %}
