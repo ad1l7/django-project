@@ -164,9 +164,12 @@
 </head>
 <body>
   <!-- Заголовок -->
-  <header class="header">
-    <h1><i class="fas fa-project-diagram"></i> Проект: {{ project.title }}</h1>
-  </header>
+<header class="header d-flex justify-content-between align-items-center">
+  <h1><i class="fas fa-project-diagram"></i> Проект: {{ project.title }}</h1>
+  <a href="{% url 'dashboard:projects' %}" class="btn btn-light btn-sm">
+    <i class="fas fa-arrow-left"></i> Назад к проектам
+  </a>
+</header>
   
   <!-- Боковая панель -->
 <div class="sidebar">
@@ -174,6 +177,7 @@
     <h3><i class="fas fa-tachometer-alt"></i> Панель управления</h3>
   </div>
   <ul class="sidebar-menu">
+
 {% if project %}
   <li>
     <a href="{% url 'dashboard:my_tasks' project.id %}"
@@ -181,57 +185,59 @@
       <i class="fas fa-user-check"></i> Мои задачи
     </a>
   </li>
-{% endif %}
-{% if request.user.role in 'DIRECTOR ADMIN' %}
-<li>
-  <a href="{% url 'dashboard:submitted_tasks' project.id %}"
-     class="{% if request.resolver_match.url_name == 'submitted_tasks' %}active{% endif %}">
-    <i class="fas fa-clipboard-check"></i> На проверке
-  </a>
-</li>
-{% endif %}
-{% if request.user.role in 'DIRECTOR ADMIN' %}
-<li>
-  <a href="{% url 'dashboard:completed_tasks' project.id %}"
-     class="{% if request.resolver_match.url_name == 'completed_tasks' %}active{% endif %}">
-    <i class="fas fa-check-circle"></i> Завершённые задачи
-  </a>
-</li>
-{% endif %}
-  {% if project %}
+
+  {% if request.user.role in 'DIRECTOR ADMIN' %}
     <li>
-      <a href="{% url 'dashboard:tasks_list' %}?project_id={{ project.id }}"
-         class="{% if request.resolver_match.url_name == 'tasks_list' %}active{% endif %}">
-        <i class="fas fa-tasks"></i> Все задачи
+      <a href="{% url 'dashboard:submitted_tasks' project.id %}"
+         class="{% if request.resolver_match.url_name == 'submitted_tasks' %}active{% endif %}">
+        <i class="fas fa-clipboard-check"></i> На проверке
       </a>
     </li>
     <li>
-      <a href="{% url 'dashboard:project_overview' project.id %}"
-         class="{% if request.resolver_match.url_name == 'project_overview' %}active{% endif %}">
-        <i class="fas fa-info-circle"></i> Обзор проекта
+      <a href="{% url 'dashboard:completed_tasks' project.id %}"
+         class="{% if request.resolver_match.url_name == 'completed_tasks' %}active{% endif %}">
+        <i class="fas fa-check-circle"></i> Завершённые задачи
       </a>
     </li>
-    <li>
-      <a href="{% url 'dashboard:project_chat' project.id %}"
-         class="{% if request.resolver_match.url_name == 'project_chat' %}active{% endif %}">
-        <i class="fas fa-comments"></i> Чат проекта
-      </a>
-    </li>
-    <li>
-      <a href="{% url 'dashboard:project_participants' project.id %}"
-         class="{% if request.resolver_match.url_name == 'project_participants' %}active{% endif %}">
-        <i class="fas fa-users"></i> Участники
-      </a>
-    </li>
-    {% if request.user.role in 'DIRECTOR ADMIN' %}
+  {% endif %}
+
+  <li>
+    <a href="{% url 'dashboard:tasks_list' %}?project_id={{ project.id }}"
+       class="{% if request.resolver_match.url_name == 'tasks_list' %}active{% endif %}">
+      <i class="fas fa-tasks"></i> Все задачи
+    </a>
+  </li>
+
+  <li>
+    <a href="{% url 'dashboard:project_overview' project.id %}"
+       class="{% if request.resolver_match.url_name == 'project_overview' %}active{% endif %}">
+      <i class="fas fa-info-circle"></i> Обзор проекта
+    </a>
+  </li>
+
+  <li>
+    <a href="{% url 'dashboard:project_chat' project.id %}"
+       class="{% if request.resolver_match.url_name == 'project_chat' %}active{% endif %}">
+      <i class="fas fa-comments"></i> Чат проекта
+    </a>
+  </li>
+
+  <li>
+    <a href="{% url 'dashboard:project_participants' project.id %}"
+       class="{% if request.resolver_match.url_name == 'project_participants' %}active{% endif %}">
+      <i class="fas fa-users"></i> Участники
+    </a>
+  </li>
+
+  {% if request.user.role in 'DIRECTOR ADMIN' %}
     <li>
       <a href="{% url 'dashboard:rejected_participants' project.id %}"
          class="{% if request.resolver_match.url_name == 'rejected_participants' %}active{% endif %}">
         <i class="fas fa-user-slash"></i> Отклонённые
       </a>
     </li>
-    {% endif %}
   {% endif %}
+{% endif %}
 </ul>
 </div>
 

@@ -2,20 +2,16 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import logout
 from django.contrib import messages
+from django.http import HttpResponseForbidden
+from django.views.decorators.http import require_POST
+from functools import wraps
 from users.models import User
 from users.forms import AdminRegisterForm, WorkerRegisterForm
-from .models import Project, ProjectParticipant, ProjectMessage
-from .forms import ProjectForm, ProjectApplicationForm, ProjectMessageForm
-from .models import Task
-from django.views.decorators.http import require_POST
-from .forms import TaskForm
-from django.utils.decorators import method_decorator
-from functools import wraps
+from .models import Project, ProjectParticipant, ProjectMessage, Task
+from .forms import ProjectForm, ProjectMessageForm, TaskForm
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
-from django.http import HttpResponseForbidden
-from .models import Task
-from .forms import TaskForm  # если понадобится в модалке
+from django.shortcuts import render, redirect
+from users.forms import ProfileForm
 
 
 import logging
@@ -32,6 +28,12 @@ def dashboard_view(request):
 def logout_view(request):
     logout(request)
     return redirect('users:auth')
+
+@login_required
+def profile_view(request):
+    return render(request, 'dashboard/profile.html', {
+        'user': request.user
+    })
 
 @user_passes_test(is_director, login_url='users:auth')
 def admins_view(request):
@@ -395,4 +397,19 @@ def completed_tasks_view(request, pk):
     return render(request, 'dashboard/completed_tasks.html', {
         'tasks': tasks,
         'project': project,
+    })
+@login_required
+def profile_view(request):
+    user = request.user
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard:profile')
+    else:
+        form = ProfileForm(instance=user)
+
+    return render(request, 'dashboard/profile.html', {
+        'user': user,
+        'form': form
     })

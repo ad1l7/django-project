@@ -1,8 +1,12 @@
+from urllib import request
 from django import forms
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.forms import AuthenticationForm
 from .models import User
-
+from django.contrib.auth.forms import PasswordChangeForm
+from django import forms
+from django.contrib.auth.forms import PasswordChangeForm as DjangoPasswordChangeForm
+from .models import User
 class RegisterForm(forms.ModelForm):
     password   = forms.CharField(
         widget=forms.PasswordInput,
@@ -111,3 +115,33 @@ class WorkerRegisterForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'bio', 'profile_picture', 'position']
+        widgets = {
+            'bio': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        # Работникам нельзя менять email и должность
+        if user and user.role == 'WORKER':
+            self.fields.pop('position')
+            self.fields.pop('email')
+
+class PasswordForm(PasswordChangeForm):
+    old_password = forms.CharField(
+        label="Старый пароль",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    new_password1 = forms.CharField(
+        label="Новый пароль",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    new_password2 = forms.CharField(
+        label="Подтвердите новый пароль",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )

@@ -13,6 +13,7 @@ urlpatterns = [
     path('admins/', admins_view, name='admins'),
     path('workers/', workers_view, name='workers'),
     path('projects/', projects_view, name='projects'),
+    path('profile/', views.profile_view, name='profile'),
 
     # Перенаправление /projects/<pk>/ на /projects/<pk>/overview/
     path('projects/<int:pk>/', lambda request, pk: redirect('dashboard:project_overview', pk=pk)),
