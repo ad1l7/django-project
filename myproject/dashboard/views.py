@@ -6,15 +6,23 @@ from django.http import HttpResponseForbidden
 from django.views.decorators.http import require_POST
 from functools import wraps
 from users.models import User
+from django.db.models.functions import Coalesce
 from users.forms import AdminRegisterForm, WorkerRegisterForm
-from .models import Project, ProjectParticipant, ProjectMessage, Task
+from .models import PersonalTask, Project, ProjectParticipant, ProjectMessage, Task
 from .forms import ProjectForm, ProjectMessageForm, TaskForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from users.forms import ProfileForm
-
-
-import logging
+from django.db.models import Q, Sum, Value
+from django.utils.timezone import now, timedelta
+from . import models
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
 def is_director(user):
     return user.is_authenticated and user.role == User.DIRECTOR
 
@@ -42,19 +50,35 @@ def admins_view(request):
 
     if request.method == 'POST':
         if 'create_admin' in request.POST:
-            form = AdminRegisterForm(request.POST)
+            form = AdminRegisterForm(request.POST, request.FILES)
             if form.is_valid():
-                admin = form.save(commit=False)
-                admin.role = User.ADMIN
-                admin.save()
+                new_admin = form.save(commit=False)
+                new_admin.role = User.ADMIN
+                new_admin.save()
                 return redirect('dashboard:admins')
+
         elif 'delete_admin' in request.POST:
             admin_id = request.POST.get('admin_id')
-            admin = get_object_or_404(User, id=admin_id, role=User.ADMIN)
-            admin.delete()
+            admin_to_delete = get_object_or_404(User, id=admin_id, role=User.ADMIN)
+            admin_to_delete.delete()
             return redirect('dashboard:admins')
 
-    return render(request, 'dashboard/admins.html', {'admins': admins, 'form': form})
+        elif 'edit_admin' in request.POST:
+            admin_id = request.POST.get('edit_admin')
+            admin_to_edit = get_object_or_404(User, id=admin_id, role=User.ADMIN)
+            form = AdminRegisterForm(request.POST, request.FILES, instance=admin_to_edit)
+            if form.is_valid():
+                form.save()
+                return redirect('dashboard:admins')
+
+    # <- 🔥 вот тут НЕ используется переменная admin, чтобы не было ошибки
+    edit_forms = {adm.id: AdminRegisterForm(instance=adm) for adm in admins}
+
+    return render(request, 'dashboard/admins.html', {
+        'admins': admins,
+        'form': form,
+        'edit_forms': edit_forms,
+    })
 
 @user_passes_test(is_director_or_admin, login_url='users:auth')
 def workers_view(request):
@@ -63,25 +87,48 @@ def workers_view(request):
 
     if request.method == 'POST':
         if 'create_worker' in request.POST:
-            form = WorkerRegisterForm(request.POST)
+            form = WorkerRegisterForm(request.POST, request.FILES)
             if form.is_valid():
                 worker = form.save(commit=False)
                 worker.role = User.WORKER
                 worker.save()
                 return redirect('dashboard:workers')
+
         elif 'delete_worker' in request.POST:
             worker_id = request.POST.get('worker_id')
             worker = get_object_or_404(User, id=worker_id, role=User.WORKER)
             worker.delete()
             return redirect('dashboard:workers')
 
-    return render(request, 'dashboard/workers.html', {'workers': workers, 'form': form})
+        elif 'edit_worker' in request.POST:
+            worker_id = request.POST.get('edit_worker')
+            worker = get_object_or_404(User, id=worker_id, role=User.WORKER)
+            form = WorkerRegisterForm(request.POST, request.FILES, instance=worker)
+            if form.is_valid():
+                form.save()
+                return redirect('dashboard:workers')
+
+    edit_forms = {w.id: WorkerRegisterForm(instance=w) for w in workers}
+
+    return render(request, 'dashboard/workers.html', {
+        'workers': workers,
+        'form': form,
+        'edit_forms': edit_forms,
+    })
 
 @user_passes_test(lambda u: u.is_authenticated, login_url='users:auth')
 def projects_view(request):
     projects = Project.objects.all()
-    form = None
 
+    # Расчёт прогресса выполнения задач
+    for project in projects:
+        total = project.tasks.count()
+        done = project.tasks.filter(status='done').count()
+        project.total_tasks = total
+        project.done_tasks = done
+        project.progress = int((done / total) * 100) if total > 0 else 0
+
+    form = None
     if request.user.role in (User.DIRECTOR, User.ADMIN):
         form = ProjectForm()
         if request.method == 'POST':
@@ -107,7 +154,77 @@ def projects_view(request):
 
     return render(request, 'dashboard/projects.html', {'projects': projects, 'form': form})
 
-from django.views.decorators.csrf import csrf_exempt
+@csrf_exempt
+@user_passes_test(lambda u: u.is_authenticated)
+def update_personal_task(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        task_id = data.get('id')
+        new_status = data.get('status')
+        task = get_object_or_404(PersonalTask, id=task_id, user=request.user)
+        task.status = new_status
+        task.save()
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+@login_required
+def dashboard_view(request):
+    tasks = PersonalTask.objects.filter(user=request.user)
+    context = {
+        'tasks': tasks,
+        'statuses': [
+            ('todo', 'Задачи'),
+            ('in_progress', 'В процессе'),
+            ('done', 'Завершено'),
+        ]
+    }
+    return render(request, 'dashboard/dashboard.html', context)
+
+@csrf_exempt
+@login_required
+def update_task_status(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        task_id = data.get('id')
+        new_status = data.get('status')
+        new_order = data.get('order', [])
+
+        task = get_object_or_404(PersonalTask, id=task_id, user=request.user)
+        task.status = new_status
+        task.save()
+
+        # Обновим позиции всех задач в этой колонке
+        for index, tid in enumerate(new_order):
+            try:
+                t = PersonalTask.objects.get(id=tid, user=request.user)
+                t.position = index
+                t.save()
+            except PersonalTask.DoesNotExist:
+                continue
+
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+
+@csrf_exempt
+@login_required
+def add_task(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        title = data.get('title')
+        if title:
+            task = PersonalTask.objects.create(user=request.user, title=title)
+            return JsonResponse({'id': task.id, 'title': task.title})
+    return JsonResponse({'success': False}, status=400)
+
+@csrf_exempt
+@login_required
+def delete_task(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        task_id = data.get('id')
+        task = get_object_or_404(PersonalTask, id=task_id, user=request.user)
+        task.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
 
 def project_access_required(view_func):
     @wraps(view_func)
@@ -312,14 +429,25 @@ def take_task(request, task_id):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 @project_access_required
+@user_passes_test(lambda u: u.is_authenticated, login_url='users:auth')
 def my_tasks_view(request, pk):
-    project = get_object_or_404(Project, pk=pk)
-    tasks = Task.objects.filter(assigned_to=request.user, project=project)
+    project = get_object_or_404(Project, id=pk)
+    tasks = Task.objects.filter(project=project, assigned_to=request.user)
+
+    # Считаем прогресс по "взятым" задачам
+    taken_tasks = tasks.exclude(status='free')
+    total_taken = taken_tasks.count()
+    done_count = taken_tasks.filter(status='done').count()
+    progress = int((done_count / total_taken) * 100) if total_taken > 0 else 0
 
     return render(request, 'dashboard/my_tasks.html', {
         'project': project,
         'tasks': tasks,
+        'progress': progress,
+        'done_count': done_count,
+        'total_taken': total_taken,
     })
+
 @login_required
 def my_tasks(request):
     tasks = Task.objects.filter(assigned_to=request.user)
@@ -412,4 +540,90 @@ def profile_view(request):
     return render(request, 'dashboard/profile.html', {
         'user': user,
         'form': form
+    })
+
+@login_required
+def approve_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if request.user.role not in ['ADMIN', 'DIRECTOR']:
+        return HttpResponseForbidden("Нет доступа")
+
+    if request.method == 'POST':
+        task.status = 'done'
+        task.save()
+
+        if task.assigned_to:
+            task.assigned_to.total_reward += task.reward
+            task.assigned_to.save()
+
+    return redirect('dashboard:submitted_tasks', pk=task.project.id)
+
+
+@login_required
+def rating_view(request):
+    filter_type = request.GET.get('filter', 'month')
+    all_users = User.objects.all()  # включая всех, не только работников
+
+    if filter_type == 'day':
+        since = now().date() - timedelta(days=1)
+    elif filter_type == 'week':
+        since = now().date() - timedelta(days=7)
+    else:
+        since = now().date() - timedelta(days=30)
+
+    done_tasks = Task.objects.filter(status='done', created_at__date__gte=since)
+
+    rewards_dict = {}
+    for task in done_tasks:
+        if task.assigned_to_id:
+            rewards_dict[task.assigned_to_id] = rewards_dict.get(task.assigned_to_id, 0) + task.reward
+
+    user_rewards = []
+    for user in all_users:
+        reward = rewards_dict.get(user.id, 0)
+
+        if user.role == 'WORKER':
+            role_label = '👷 Работник'
+        elif user.role == 'ADMIN':
+            role_label = '🧑‍💼 Админ'
+        elif user.role == 'DIRECTOR':
+            role_label = '👨‍💼 Директор'
+        else:
+            role_label = 'Пользователь'
+
+        user_rewards.append({
+            'user': user,
+            'reward': reward,
+            'role_label': role_label
+        })
+
+    user_rewards.sort(key=lambda x: x['reward'], reverse=True)
+
+    return render(request, 'dashboard/rating.html', {
+        'user_rewards': user_rewards,
+        'filter': filter_type
+    })
+@user_passes_test(lambda u: u.is_authenticated and u.role in ('ADMIN', 'DIRECTOR'))
+def reset_rewards(request):
+    if request.method == 'POST':
+        # Обнуляем только награды (оставляя задачи)
+        User.objects.all().update(total_reward=0)
+        Task.objects.filter(status='done').update(reward=0)
+        messages.success(request, 'Награды успешно обнулены, задачи сохранены.')
+    return redirect('dashboard:rating')
+@project_access_required
+def project_overview(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    total_tasks = project.tasks.count()
+    completed_tasks = project.tasks.filter(status='done').count()
+    
+    progress = 0
+    if total_tasks > 0:
+        progress = int((completed_tasks / total_tasks) * 100)
+
+    return render(request, 'dashboard/project_overview.html', {
+        'project': project,
+        'progress': progress,
+        'total_tasks': total_tasks,
+        'completed_tasks': completed_tasks,
     })

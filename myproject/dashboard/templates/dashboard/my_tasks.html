@@ -3,6 +3,21 @@
 {% block content %}
 <div class="container mt-4">
   <h3>Мои задачи</h3>
+<div class="mb-4">
+  <h6>Прогресс выполнения взятых задач</h6>
+  <div class="progress" style="height: 25px; border: 2px solid #198754;">
+    <div class="progress-bar bg-success fw-bold"
+         role="progressbar"
+         style="width: {{ progress }}%;"
+         aria-valuenow="{{ progress }}"
+         aria-valuemin="0"
+         aria-valuemax="100">
+      {{ progress }}%
+    </div>
+  </div>
+  <p class="mt-2 text-muted">Выполнено: {{ done_count }} из {{ total_taken }}</p>
+</div>
+
   {% if tasks %}
     <ul class="list-group">
       {% for task in tasks %}

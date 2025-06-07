@@ -21,6 +21,7 @@ class User(AbstractUser):
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True, verbose_name="Фото профиля")
     bio = models.TextField(null=True, blank=True, verbose_name="Описание")
     position = models.CharField(max_length=255, null=True, blank=True, verbose_name="Должность")
+    total_reward = models.PositiveIntegerField(default=0, verbose_name="Накопленная награда")
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"

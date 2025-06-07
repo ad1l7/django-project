@@ -9,37 +9,40 @@
     </button>
 
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        {% if request.user.role == 'DIRECTOR' %}
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:home' %}">Главная</a></li>
-          <li class="nav-item">
-            <a class="nav-link text-white" href="{% if project %}{% url 'dashboard:project_overview' project.id %}{% else %}{% url 'dashboard:projects' %}{% endif %}">
-              {% if project %}Проект{% else %}Проекты{% endif %}
-            </a>
-          </li>
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:admins' %}">Администраторы</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:workers' %}">Работники</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'users:profile' %}">Профиль</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#confirmLogoutModal">Выход</a></li>
+     <ul class="navbar-nav ms-auto">
+  {% if request.user.role == 'DIRECTOR' %}
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:home' %}">Главная</a></li>
+    <li class="nav-item">
+      <a class="nav-link text-white" href="{% if project %}{% url 'dashboard:project_overview' project.id %}{% else %}{% url 'dashboard:projects' %}{% endif %}">
+        {% if project %}Проект{% else %}Проекты{% endif %}
+      </a>
+    </li>
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:admins' %}">Администраторы</a></li>
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:workers' %}">Работники</a></li>
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:rating' %}">Рейтинг</a></li>
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'users:profile' %}">Профиль</a></li>
+    <li class="nav-item"><a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#confirmLogoutModal">Выход</a></li>
 
-        {% elif request.user.role == 'ADMIN' %}
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:home' %}">Главная</a></li>
-          <li class="nav-item">
-            <a class="nav-link text-white" href="{% if project %}{% url 'dashboard:project_overview' project.id %}{% else %}{% url 'dashboard:projects' %}{% endif %}">
-              {% if project %}Проект{% else %}Проекты{% endif %}
-            </a>
-          </li>
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:workers' %}">Работники</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'users:profile' %}">Профиль</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#confirmLogoutModal">Выход</a></li>
+  {% elif request.user.role == 'ADMIN' %}
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:home' %}">Главная</a></li>
+    <li class="nav-item">
+      <a class="nav-link text-white" href="{% if project %}{% url 'dashboard:project_overview' project.id %}{% else %}{% url 'dashboard:projects' %}{% endif %}">
+        {% if project %}Проект{% else %}Проекты{% endif %}
+      </a>
+    </li>
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:workers' %}">Работники</a></li>
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:rating' %}">Рейтинг</a></li>
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'users:profile' %}">Профиль</a></li>
+    <li class="nav-item"><a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#confirmLogoutModal">Выход</a></li>
 
-        {% else %}
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:home' %}">Главная</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:projects' %}">Проекты</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'users:profile' %}">Профиль</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#confirmLogoutModal">Выход</a></li>
-        {% endif %}
-      </ul>
+  {% else %}
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:home' %}">Главная</a></li>
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:projects' %}">Проекты</a></li>
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'dashboard:rating' %}">Рейтинг</a></li>
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'users:profile' %}">Профиль</a></li>
+    <li class="nav-item"><a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#confirmLogoutModal">Выход</a></li>
+  {% endif %}
+</ul>
     </div>
   </div>
 </nav>

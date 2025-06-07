@@ -2,6 +2,7 @@ from django.db import models
 from users.models import User
 from django.conf import settings
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 # Create your models here.
 class Project(models.Model):
     IMPORTANCE_CHOICES = [
@@ -74,6 +75,28 @@ class Task(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     submitted_file = models.FileField(upload_to='submitted_tasks/', blank=True, null=True)
     submitted_comment = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.title
+
+
+
+User = get_user_model()
+
+class PersonalTask(models.Model):
+    STATUS_CHOICES = [
+        ('todo', 'Задачи'),
+        ('in_progress', 'В процессе'),
+        ('done', 'Завершено'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    status = models.CharField(max_length=20, choices=[('todo', 'Задачи'), ('in_progress', 'В процессе'), ('done', 'Завершено')])
+    position = models.PositiveIntegerField(default=0)  # <-- добавили
+
+    class Meta:
+        ordering = ['position']  # чтобы по умолчанию упорядочивались
 
     def __str__(self):
         return self.title

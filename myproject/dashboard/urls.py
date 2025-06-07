@@ -8,15 +8,19 @@ from .views import (
 app_name = 'dashboard'
 
 urlpatterns = [
-    path('', dashboard_view, name='home'),
+    path('', views.dashboard_view, name='home'),
+    path('update/', views.update_task_status, name='update_task_status'),
+    path('add/', views.add_task, name='add_task'),
+    path('delete-task/', views.delete_task, name='delete_task'),
     path('logout/', logout_view, name='logout'),
     path('admins/', admins_view, name='admins'),
     path('workers/', workers_view, name='workers'),
     path('projects/', projects_view, name='projects'),
     path('profile/', views.profile_view, name='profile'),
-
     # Перенаправление /projects/<pk>/ на /projects/<pk>/overview/
     path('projects/<int:pk>/', lambda request, pk: redirect('dashboard:project_overview', pk=pk)),
+
+
     
     # Проект
     path('projects/<int:pk>/overview/', views.project_overview, name='project_overview'),
@@ -40,6 +44,7 @@ urlpatterns = [
     path('tasks/<int:task_id>/approve/', views.approve_task, name='approve_task'),
     path('tasks/<int:task_id>/reject/', views.reject_task, name='reject_task'),
     path('projects/<int:pk>/completed-tasks/', views.completed_tasks_view, name='completed_tasks'),
-
+    path('rating/', views.rating_view, name='rating'),
+    path('rating/reset/', views.reset_rewards, name='reset_rewards'),
     
 ]

@@ -84,6 +84,30 @@
       <li class="list-group-item"><strong>Создано:</strong> {{ project.created_by.get_full_name }} ({{ project.created_at|date:"Y-m-d" }})</li>
       <li class="list-group-item"><strong>Требуется работников:</strong> {{ project.required_workers }}</li>
     </ul>
+    <div class="p-3">
+
+  <div class="d-flex justify-content-between mb-1">
+    <small class="text-muted">Прогресс выполнения</small>
+    <small class="text-muted">{{ project.done_tasks }} / {{ project.total_tasks }}</small>
+  </div>
+  <div class="progress border border-secondary" style="height: 22px; border-radius: 12px; background-color: #f1f1f1;">
+    <div class="progress-bar 
+                {% if project.progress < 30 %}bg-danger
+                {% elif project.progress < 70 %}bg-warning
+                {% else %}bg-success{% endif %} 
+                progress-bar-striped progress-bar-animated"
+         role="progressbar"
+         style="width: {{ project.progress }}%; font-weight: 600;"
+         aria-valuenow="{{ project.progress }}"
+         aria-valuemin="0"
+         aria-valuemax="100">
+      {{ project.progress }}%
+    </div>
+  </div>
+
+  <p class="text-muted mt-2 mb-0">Выполнено задач: {{ project.done_tasks }} из {{ project.total_tasks }}</p>
+</div>
+
   </div>
 </a>
 

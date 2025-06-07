@@ -74,11 +74,12 @@ class AdminRegisterForm(forms.ModelForm):
     password = forms.CharField(
         widget=forms.PasswordInput,
         label='Пароль',
+        required=False  # ← теперь пароль необязателен
     )
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email', 'password']
+        fields = ['first_name', 'last_name', 'username', 'email', 'password', 'bio', 'position', 'profile_picture']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -87,21 +88,23 @@ class AdminRegisterForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password'])
-        user.role = User.ADMIN
+        password = self.cleaned_data.get('password')
+        if password:  # Устанавливаем пароль только если он был введён
+            user.set_password(password)
         if commit:
             user.save()
         return user
-    
+
 class WorkerRegisterForm(forms.ModelForm):
     password = forms.CharField(
         widget=forms.PasswordInput,
         label='Пароль',
+        required=False  # ← теперь не обязательно
     )
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email', 'password']
+        fields = ['first_name', 'last_name', 'username', 'email', 'password', 'bio', 'position', 'profile_picture']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -110,7 +113,9 @@ class WorkerRegisterForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password'])
+        password = self.cleaned_data.get('password')
+        if password:
+            user.set_password(password)
         user.role = User.WORKER
         if commit:
             user.save()
