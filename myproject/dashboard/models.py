@@ -81,22 +81,20 @@ class Task(models.Model):
 
 
 
-User = get_user_model()
+
+
 
 class PersonalTask(models.Model):
     STATUS_CHOICES = [
         ('todo', 'Задачи'),
         ('in_progress', 'В процессе'),
-        ('done', 'Завершено'),
+        ('done', 'Выполнено'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='personal_tasks')
     title = models.CharField(max_length=255)
-    status = models.CharField(max_length=20, choices=[('todo', 'Задачи'), ('in_progress', 'В процессе'), ('done', 'Завершено')])
-    position = models.PositiveIntegerField(default=0)  # <-- добавили
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='todo')
 
-    class Meta:
-        ordering = ['position']  # чтобы по умолчанию упорядочивались
 
     def __str__(self):
         return self.title

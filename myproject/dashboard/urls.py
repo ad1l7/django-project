@@ -9,9 +9,11 @@ app_name = 'dashboard'
 
 urlpatterns = [
     path('', views.dashboard_view, name='home'),
-    path('update/', views.update_task_status, name='update_task_status'),
     path('add/', views.add_task, name='add_task'),
-    path('delete-task/', views.delete_task, name='delete_task'),
+    path('update/', views.update_task_status, name='update_task_status'),
+   path('personal/delete-task/', views.delete_personal_task, name='delete_personal_task'),
+
+    
     path('logout/', logout_view, name='logout'),
     path('admins/', admins_view, name='admins'),
     path('workers/', workers_view, name='workers'),

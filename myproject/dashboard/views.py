@@ -29,9 +29,10 @@ def is_director(user):
 def is_director_or_admin(user):
     return user.is_authenticated and user.role in (User.DIRECTOR, User.ADMIN)
 
-@login_required(login_url='users:auth')
+@login_required
 def dashboard_view(request):
-    return render(request, 'dashboard/dashboard.html')
+    tasks = PersonalTask.objects.filter(user=request.user)
+    return render(request, 'dashboard/dashboard.html', {'tasks': tasks})
 
 def logout_view(request):
     logout(request)
@@ -154,78 +155,46 @@ def projects_view(request):
 
     return render(request, 'dashboard/projects.html', {'projects': projects, 'form': form})
 
-@csrf_exempt
-@user_passes_test(lambda u: u.is_authenticated)
-def update_personal_task(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        task_id = data.get('id')
-        new_status = data.get('status')
-        task = get_object_or_404(PersonalTask, id=task_id, user=request.user)
-        task.status = new_status
-        task.save()
-        return JsonResponse({'success': True})
-    return JsonResponse({'success': False}, status=400)
 @login_required
-def dashboard_view(request):
+def kanban_board(request):
     tasks = PersonalTask.objects.filter(user=request.user)
-    context = {
-        'tasks': tasks,
-        'statuses': [
-            ('todo', 'Задачи'),
-            ('in_progress', 'В процессе'),
-            ('done', 'Завершено'),
-        ]
-    }
-    return render(request, 'dashboard/dashboard.html', context)
+    return render(request, 'dashboard/dashboard.html', {'tasks': tasks})
+
+@csrf_exempt
+@login_required
+def add_task(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        if title:
+            PersonalTask.objects.create(user=request.user, title=title)
+    return redirect('dashboard:home')  # Убедись, что это имя маршрута dashboard
 
 @csrf_exempt
 @login_required
 def update_task_status(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        task_id = data.get('id')
+        task_id = data.get('task_id')
         new_status = data.get('status')
-        new_order = data.get('order', [])
-
         task = get_object_or_404(PersonalTask, id=task_id, user=request.user)
         task.status = new_status
         task.save()
-
-        # Обновим позиции всех задач в этой колонке
-        for index, tid in enumerate(new_order):
-            try:
-                t = PersonalTask.objects.get(id=tid, user=request.user)
-                t.position = index
-                t.save()
-            except PersonalTask.DoesNotExist:
-                continue
-
         return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
 
 @csrf_exempt
+@require_POST
 @login_required
-def add_task(request):
-    if request.method == 'POST':
+def delete_personal_task(request):
+    try:
         data = json.loads(request.body)
-        title = data.get('title')
-        if title:
-            task = PersonalTask.objects.create(user=request.user, title=title)
-            return JsonResponse({'id': task.id, 'title': task.title})
-    return JsonResponse({'success': False}, status=400)
-
-@csrf_exempt
-@login_required
-def delete_task(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        task_id = data.get('id')
+        task_id = data.get('task_id')
         task = get_object_or_404(PersonalTask, id=task_id, user=request.user)
         task.delete()
         return JsonResponse({'success': True})
-    return JsonResponse({'success': False}, status=400)
-
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    
 def project_access_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, pk, *args, **kwargs):
