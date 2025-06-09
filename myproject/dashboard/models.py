@@ -45,11 +45,12 @@ class ProjectParticipant(models.Model):
     
 
 class ProjectMessage(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='messages')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="messages")
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField()
+    content = models.TextField(blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-
+    attachment = models.FileField(upload_to='chat_attachments/', blank=True, null=True)
+    
     def __str__(self):
         return f"{self.sender.get_full_name()} ({self.timestamp}): {self.content}"
 

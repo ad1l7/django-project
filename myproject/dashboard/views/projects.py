@@ -19,6 +19,11 @@ def projects_view(request):
     form = None
     if request.user.role in (User.DIRECTOR, User.ADMIN):
         form = ProjectForm()
+        edit_forms = {p.id: ProjectForm(instance=p) for p in projects}
+
+        for project in projects:
+            edit_forms[project.id] = ProjectForm(instance=project)
+
         if request.method == 'POST':
             if 'create_project' in request.POST:
                 form = ProjectForm(request.POST, request.FILES)
@@ -40,10 +45,11 @@ def projects_view(request):
                 project.delete()
                 return redirect('dashboard:projects')
 
-    return render(request, 'dashboard/projects/projects.html', {
-        'projects': projects,
-        'form': form
-    })
+        return render(request, 'dashboard/projects/projects.html', {
+            'projects': projects,
+            'form': form,
+            'edit_forms': edit_forms
+        })
 
 
 def project_access_required(view_func):

@@ -1,263 +1,20 @@
 {% extends 'dashboard/projects/base/project_base.html' %}
+{% load static %}
+{% load custom_filters %}
+
 {% block content %}
-<style>:root {
+<style>
+:root {
   --primary: #4361ee;
   --primary-dark: #3a56d4;
   --secondary: #4cc9f0;
   --success: #06d6a0;
-  --warning: #ffd166;
-  --danger: #ef476f;
+  --light-gray: #e9ecef;
   --light: #f8f9fa;
   --dark: #212529;
-  --gray: #6c757d;
-  --light-gray: #e9ecef;
+  --transition: all 0.3s ease;
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.12);
-  --transition: all 0.3s ease;
-}
-
-/* Заголовок проекта */
-.project-header {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: var(--shadow);
-  position: relative;
-  overflow: hidden;
-}
-
-.project-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 5px;
-  width: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
-}
-
-.project-title {
-  font-weight: 700;
-  color: var(--primary);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-}
-
-.project-title i {
-  margin-right: 12px;
-  color: var(--secondary);
-}
-
-.project-description {
-  color: var(--gray);
-  line-height: 1.7;
-  margin-bottom: 1.5rem;
-  font-size: 1.05rem;
-}
-
-.project-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.detail-card {
-  background: white;
-  border-radius: 10px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow);
-  transition: var(--transition);
-  border-top: 3px solid var(--primary);
-}
-
-.detail-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-hover);
-}
-
-.detail-card h5 {
-  color: var(--gray);
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.detail-card h5 i {
-  width: 20px;
-  text-align: center;
-}
-
-.detail-card p {
-  font-weight: 600;
-  font-size: 1.2rem;
-  margin: 0;
-}
-
-/* Бейджи статусов */
-.status-badge {
-  display: inline-block;
-  padding: 0.35rem 1rem;
-  border-radius: 50px;
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.badge-high {
-  background-color: rgba(239, 71, 111, 0.15);
-  color: var(--danger);
-}
-
-.badge-medium {
-  background-color: rgba(255, 209, 102, 0.15);
-  color: #e6a400;
-}
-
-.badge-low {
-  background-color: rgba(6, 214, 160, 0.15);
-  color: var(--success);
-}
-
-/* Секции */
-.section {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: var(--shadow);
-}
-
-.section-title {
-  font-weight: 600;
-  color: var(--primary);
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid var(--light-gray);
-  display: flex;
-  align-items: center;
-}
-
-.section-title i {
-  margin-right: 10px;
-  color: var(--secondary);
-}
-
-/* Участники */
-.participants-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.participant-card {
-  border: 1px solid var(--light-gray);
-  border-radius: 10px;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  transition: var(--transition);
-  position: relative;
-}
-
-.participant-card:hover {
-  border-color: var(--primary);
-  box-shadow: var(--shadow);
-}
-
-.participant-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(45deg, var(--primary), var(--secondary));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 1.5rem;
-  margin-right: 1rem;
-  flex-shrink: 0;
-}
-
-.participant-info {
-  flex: 1;
-}
-
-.participant-name {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.participant-status {
-  font-size: 0.9rem;
-}
-
-.status-approved {
-  color: var(--success);
-}
-
-.status-pending {
-  color: var(--warning);
-}
-
-.status-rejected {
-  color: var(--danger);
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.btn-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.btn-approve {
-  background: rgba(6, 214, 160, 0.15);
-  color: var(--success);
-}
-
-.btn-reject {
-  background: rgba(239, 71, 111, 0.15);
-  color: var(--danger);
-}
-
-.btn-icon:hover {
-  transform: scale(1.1);
-}
-
-/* Кнопка подачи заявки */
-.btn-apply {
-  background: linear-gradient(120deg, var(--success), #05b58a);
-  border: none;
-  padding: 0.75rem 2rem;
-  font-weight: 500;
-  border-radius: 8px;
-  color: white;
-  transition: var(--transition);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.btn-apply:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
 }
 
 /* Чат */
@@ -291,12 +48,6 @@
   padding: 1rem;
   border-radius: 12px;
   position: relative;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .message-sent {
@@ -362,85 +113,120 @@
 .chat-input button:hover {
   background: var(--primary-dark);
 }
-
-/* Уведомления */
-.alert {
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-}
-
-.alert-info {
-  background: rgba(76, 201, 240, 0.15);
-  color: #0a7ea4;
-}
-
-.alert i {
-  margin-right: 10px;
-  font-size: 1.2rem;
-}
-
-/* Адаптивность */
-@media (max-width: 992px) {
-  .project-details {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .project-details {
-    grid-template-columns: 1fr;
-  }
-  
-  .participants-list {
-    grid-template-columns: 1fr;
-  }
-  
-  .chat-container {
-    height: 400px;
-  }
-  
-  .message {
-    max-width: 85%;
-  }
-}</style>
+</style>
 <div class="section">
   <h3 class="section-title"><i class="fas fa-comments"></i> Чат проекта</h3>
   
   <div class="chat-container">
-    <div class="chat-header">
-      <h5>Общий чат проекта: {{ project.title }}</h5>
-    </div>
-    <div class="chat-messages">
-      {% for msg in messages %}
-        <div class="message {% if msg.sender == request.user %}message-sent{% else %}message-received{% endif %}">
-          <div class="message-sender">
-            {{ msg.sender.get_full_name }}
-            {% if msg.sender == request.user %}(Вы){% endif %}
-          </div>
-          <div class="message-text">{{ msg.content }}</div>
-          <div class="message-time">{{ msg.timestamp|date:"Y-m-d H:i" }}</div>
-        </div>
-      {% empty %}
-        <div class="text-center p-4">
-          <i class="fas fa-comment-slash fa-2x mb-3 text-muted"></i>
-          <p>Сообщений пока нет. Будьте первым, кто напишет!</p>
-        </div>
-      {% endfor %}
-    </div>
-    <form method="post" class="chat-input">
+<div class="chat-header d-flex align-items-center justify-content-between">
+  <h5>Общий чат проекта: {{ project.title }}</h5>
+  {% if request.user.role in 'ADMIN DIRECTOR' %}
+    <form method="post">
       {% csrf_token %}
-      <input type="text" 
-             name="content" 
-             class="form-control" 
-             placeholder="Напишите сообщение..." 
-             required>
-      <button type="submit" name="send_message" class="btn btn-primary">
-        <i class="fas fa-paper-plane"></i>
+      <button type="submit" name="clear_chat" class="btn btn-danger btn-sm">
+        <i class="fas fa-trash-alt"></i> Очистить чат
       </button>
     </form>
+  {% endif %}
+</div>
+
+<div class="chat-messages">
+  {% for msg in messages %}
+    <div class="message {% if msg.sender == request.user %}message-sent{% else %}message-received{% endif %}">
+      <div class="message-sender">
+        {{ msg.sender.get_full_name }}{% if msg.sender == request.user %} (Вы){% endif %}
+      </div>
+
+      {% if msg.content %}
+        <div class="message-text">{{ msg.content }}</div>
+      {% endif %}
+
+      {% if msg.attachment %}
+        <div class="message-text">
+          📎 <a href="{{ msg.attachment.url }}" target="_blank" download>
+            Скачать файл ({{ msg.attachment.name|cut:"chat_attachments/" }})
+          </a>
+        </div>
+      {% endif %}
+
+      <div class="message-time">{{ msg.timestamp|date:"Y-m-d H:i" }}</div>
+    </div>
+  {% empty %}
+    <div class="text-center p-4">
+      <i class="fas fa-comment-slash fa-2x mb-3 text-muted"></i>
+      <p>Сообщений пока нет. Будьте первым, кто напишет!</p>
+    </div>
+  {% endfor %}
+</div>
+
+<form method="post" enctype="multipart/form-data" class="chat-input" id="chat-form">
+  {% csrf_token %}
+  <input type="text" 
+         name="content" 
+         class="form-control" 
+         placeholder="Напишите сообщение..." 
+         required>
+  
+  <input type="file" name="attachment" id="attachment" style="display: none;" onchange="document.getElementById('chat-form').submit();">
+  <label for="attachment" class="btn btn-secondary" title="Прикрепить файл">
+    <i class="fas fa-paperclip"></i>
+  </label>
+
+  <button type="submit" name="send_message" class="btn btn-primary">
+    <i class="fas fa-paper-plane"></i>
+  </button>
+</form>
   </div>
 </div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const messagesContainer = document.querySelector('.chat-messages');
+    let lastMessageCount = 0;
+
+    function fetchMessages() {
+      fetch("{% url 'dashboard:fetch_project_messages' project.id %}")
+        .then(response => response.json())
+        .then(data => {
+          if (data.messages.length === lastMessageCount) return; // нет новых сообщений
+
+          // Обновляем только если появились новые
+          lastMessageCount = data.messages.length;
+          const wasAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
+
+          messagesContainer.innerHTML = ''; // очистка, но только при необходимости
+          data.messages.forEach(msg => {
+            const div = document.createElement('div');
+            div.className = `message ${msg.is_user ? 'message-sent' : 'message-received'}`;
+            let attachmentHTML = '';
+            if (msg.attachment_url) {
+              attachmentHTML = `
+                <div class="message-text">
+                  📎 <a href="${msg.attachment_url}" target="_blank" download>
+                    Скачать файл
+                  </a>
+                </div>`;
+            }
+            
+            div.innerHTML = `
+              <div class="message-sender">${msg.sender} ${msg.is_user ? '(Вы)' : ''}</div>
+              ${msg.content ? `<div class="message-text">${msg.content}</div>` : ''}
+              ${attachmentHTML}
+              <div class="message-time">${msg.timestamp}</div>
+            `;
+
+            messagesContainer.appendChild(div);
+          });
+
+          if (wasAtBottom) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          }
+        });
+    }
+
+    fetchMessages(); // первый запуск
+    setInterval(fetchMessages, 1000); // каждые 1 секунда
+  });
+</script>
+
+
 {% endblock %}

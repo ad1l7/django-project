@@ -4,7 +4,6 @@ from django.contrib.auth.decorators import user_passes_test, login_required
 from dashboard.models import Project, Task
 from dashboard.forms import TaskForm
 from dashboard.views import project_access_required
-
 @project_access_required
 def project_tasks(request, pk):
     project = get_object_or_404(Project, pk=pk)
@@ -81,6 +80,9 @@ def tasks_list(request):
     tasks = Task.objects.filter(project=project) if project else Task.objects.none()
     form = TaskForm(request.POST or None, request.FILES or None)
 
+    # 💡 Вот это важно:
+    edit_forms = {task.id: TaskForm(instance=task) for task in tasks}
+
     if request.method == 'POST' and form.is_valid() and request.user.role in ('DIRECTOR', 'ADMIN'):
         task = form.save(commit=False)
         task.project = project
@@ -92,5 +94,5 @@ def tasks_list(request):
         'project': project,
         'tasks': tasks,
         'form': form,
+        'edit_forms': edit_forms  # ← обязательно!
     })
-    

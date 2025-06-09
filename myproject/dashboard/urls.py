@@ -1,4 +1,7 @@
 from django.urls import path
+
+from dashboard.views.project_chat import fetch_project_messages
+
 from . import views
 from .views import (
     dashboard_view, logout_view, admins_view, workers_view,
@@ -12,6 +15,8 @@ urlpatterns = [
     path('add/', views.add_task, name='add_task'),
     path('update/', views.update_task_status, name='update_task_status'),
    path('personal/delete-task/', views.delete_personal_task, name='delete_personal_task'),
+path('projects/<int:pk>/chat/fetch/', fetch_project_messages, name='fetch_project_messages'),
+
 
     
     path('logout/', logout_view, name='logout'),
@@ -19,7 +24,7 @@ urlpatterns = [
     path('workers/', workers_view, name='workers'),
     path('projects/', projects_view, name='projects'),
     path('profile/', views.profile_view, name='profile'),
-    # Перенаправление /projects/<pk>/ на /projects/<pk>/overview/
+    # Перенаправление /projects/<pk>/ на /projects/<pk>/overview/   
     path('projects/<int:pk>/', lambda request, pk: redirect('dashboard:project_overview', pk=pk)),
 
 

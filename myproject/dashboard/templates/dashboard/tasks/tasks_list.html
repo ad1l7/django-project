@@ -1,6 +1,6 @@
 {% extends 'dashboard/projects/base/project_base.html' %}
 {% load static %}
-
+{% load custom_tags %}
 {% block content %}
 <div class="container mt-4">
   <h3>Все задачи проекта "{{ project.title }}"</h3>
@@ -16,15 +16,14 @@
             <small>Награда: {{ task.reward|default:"Нет информации" }}</small><br>
             <small>Статус: {{ task.get_status_display }}</small><br>
 
-{% if task.status == 'free' %}
-  <form method="post" action="{% url 'dashboard:take_task' task.id %}" style="margin-top: 5px;">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-sm btn-outline-primary">Взяться за задачу</button>
-  </form>
-{% elif task.status == 'in_progress' and task.assigned_to %}
-  <small>Задача занята: {{ task.assigned_to.get_full_name }}</small>
-
-{% endif %}
+            {% if task.status == 'free' %}
+              <form method="post" action="{% url 'dashboard:take_task' task.id %}" style="margin-top: 5px;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-primary">Взяться за задачу</button>
+              </form>
+            {% elif task.status == 'in_progress' and task.assigned_to %}
+              <small>Задача занята: {{ task.assigned_to.get_full_name }}</small>
+            {% endif %}
           </div>
           {% if request.user.role == 'DIRECTOR' or request.user.role == 'ADMIN' %}
           <div class="dropdown">
@@ -45,29 +44,33 @@
             <div class="modal-content">
               <form method="post" enctype="multipart/form-data" action="{% url 'dashboard:edit_task' task.id %}?project_id={{ project.id }}">
                 {% csrf_token %}
-                {{ form.non_field_errors }}
                 <div class="modal-header">
                   <h5 class="modal-title">Редактировать задачу</h5>
                   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                  <div class="mb-3">
-                    {{ form.title.label_tag }} {{ form.title }} {{ form.title.errors }}
-                  </div>
-                  <div class="mb-3">
-                    {{ form.deadline.label_tag }} {{ form.deadline }} {{ form.deadline.errors }}
-                  </div>
-                  <div class="mb-3">
-                    {{ form.description.label_tag }} {{ form.description }} {{ form.description.errors }}
-                  </div>
-                  <div class="mb-3">
-                    {{ form.reward.label_tag }} {{ form.reward }} {{ form.reward.errors }}
-                  </div>
-                  <div class="mb-3">
-                    {{ form.file.label_tag }} {{ form.file }} {{ form.file.errors }}
-                    {% if task.file %}<small>Текущий: <a href="{{ task.file.url }}">Скачать</a></small>{% endif %}
-                  </div>
-                </div>
+                {% with edit_form=edit_forms|get_item:task.id %}
+<div class="modal-body">
+                    <div class="mb-3">
+                      {{ edit_form.title.label_tag }} {{ edit_form.title }} {{ edit_form.title.errors }}
+                    </div>
+                    <div class="mb-3">
+                      {{ edit_form.deadline.label_tag }} {{ edit_form.deadline }} {{ edit_form.deadline.errors }}
+                    </div>
+                    <div class="mb-3">
+                      {{ edit_form.description.label_tag }} {{ edit_form.description }} {{ edit_form.description.errors }}
+                    </div>
+                    <div class="mb-3">
+                      {{ edit_form.reward.label_tag }} {{ edit_form.reward }} {{ edit_form.reward.errors }}
+                    </div>
+                    <div class="mb-3">
+                      {{ edit_form.file.label_tag }} {{ edit_form.file }} {{ edit_form.file.errors }}
+                      {% if task.file %}
+                        <small>Текущий: <a href="{{ task.file.url }}" target="_blank">Скачать</a></small>
+                      {% endif %}
+                    </div>
+                    </div>
+                  {% endwith %}
+                
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                   <button type="submit" class="btn btn-success">Сохранить</button>
@@ -98,7 +101,6 @@
             </div>
           </div>
         </div>
-
       {% endfor %}
     </ul>
   {% else %}
@@ -119,8 +121,6 @@
       <div class="modal-content">
         <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
-          <input type="hidden" name="create_task" value="1">
-          <input type="hidden" name="project_id" value="{{ project.id }}">
           <div class="modal-header">
             <h5 class="modal-title" id="createTaskModalLabel">Создать задачу</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>

@@ -25,7 +25,7 @@ class ProjectApplicationForm(forms.ModelForm):
 class ProjectMessageForm(forms.ModelForm):
     class Meta:
         model = ProjectMessage
-        fields = ['content']
+        fields = ['content', 'attachment']
         widgets = {
             'content': forms.Textarea(attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'Введите сообщение...'})
         }
