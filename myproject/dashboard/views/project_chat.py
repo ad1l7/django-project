@@ -17,7 +17,7 @@ def project_chat(request, pk):
         msg.save()
         return redirect('dashboard:project_chat', pk=pk)
 
-    return render(request, 'dashboard/project_chat.html', {
+    return render(request, 'dashboard/projects/chat/project_chat.html', {
         'project': project,
         'messages': messages,
         'message_form': message_form

@@ -1,4 +1,4 @@
-{% extends 'dashboard/project_base.html' %}
+{% extends 'dashboard/projects/base/project_base.html' %}
 {% block content %}
 <style>:root {
   --primary: #4361ee;
@@ -406,59 +406,51 @@
     max-width: 85%;
   }
 }</style>
-<div class="section">
-  <h3 class="section-title"><i class="fas fa-users"></i> Участники проекта</h3>
+<div class="project-header">
+  <h1 class="project-title"><i class="fas fa-rocket"></i> {{ project.title }}</h1>
+  <p class="project-description">{{ project.description }}</p>
   
-  <div class="participants-list">
-    {% for p in participants %}
-      <div class="participant-card">
-        <div class="participant-avatar">{{ p.worker.get_initials }}</div>
-        <div class="participant-info">
-          <div class="participant-name">{{ p.worker.get_full_name }}</div>
-          <div class="participant-status 
-            {% if p.status == 'approved' %}status-approved
-            {% elif p.status == 'applied' or p.status == 'invited' %}status-pending
-            {% else %}status-rejected{% endif %}">
-            {{ p.get_status_display }}
-          </div>
-        </div>
-        {% if request.user.role in 'DIRECTOR,ADMIN' and p.status in 'applied,invited' %}
-          <div class="action-buttons">
-            <form method="post" class="d-inline">
-              {% csrf_token %}
-              <input type="hidden" name="participant_id" value="{{ p.id }}">
-              <button name="approve_participant" class="btn-icon btn-approve" title="Утвердить">
-                <i class="fas fa-check"></i>
-              </button>
-              <button name="reject_participant" class="btn-icon btn-reject" title="Отклонить">
-                <i class="fas fa-times"></i>
-              </button>
-            </form>
-          </div>
-        {% endif %}
-      </div>
-    {% endfor %}
+  <div class="project-details">
+    <div class="detail-card">
+      <h5><i class="far fa-calendar-alt"></i> Дедлайн</h5>
+      <p>{{ project.deadline }}</p>
+    </div>
+    <div class="detail-card">
+      <h5><i class="fas fa-exclamation-circle"></i> Важность</h5>
+      <p>
+        <span class="status-badge 
+          {% if project.importance == 'high' %}badge-high
+          {% elif project.importance == 'medium' %}badge-medium
+          {% else %}badge-low{% endif %}">
+          {{ project.get_importance_display }}
+        </span>
+      </p>
+    </div>
+    <div class="detail-card">
+      <h5><i class="fas fa-users"></i> Требуется работников</h5>
+      <p>{{ project.required_workers }}</p>
+    </div>
+    <div class="detail-card">
+      <h5><i class="fas fa-user-tie"></i> Создано</h5>
+      <p>{{ project.created_by.get_full_name }}</p>
+    </div>
+    
   </div>
-  
-  {% if request.user.role in 'DIRECTOR,ADMIN' %}
-    <h5 class="mt-4 mb-3">Пригласить работника</h5>
-    <form method="post" class="row g-3">
-      {% csrf_token %}
-      <input type="hidden" name="invite_worker" value="1">
-      <div class="col-md-8">
-        <select name="worker_id" class="form-select">
-          <option selected disabled>Выберите сотрудника</option>
-          {% for worker in workers %}
-            <option value="{{ worker.id }}">{{ worker.get_full_name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-md-4">
-        <button type="submit" class="btn btn-primary w-100">
-          <i class="fas fa-paper-plane me-2"></i> Пригласить
-        </button>
-      </div>
-    </form>
-  {% endif %}
+    
+<div class="mt-4">
+  <h5 class="mb-3">Прогресс выполнения задач</h5>
+
+  <div class="position-relative" style="height: 30px; background-color: #f0f0f0; border: 2px solid #ccc; border-radius: 15px; overflow: hidden;">
+    <div class="position-absolute start-0 top-0 h-100"
+         style="width: {{ progress }}%; background: linear-gradient(90deg, #28a745, #218838); transition: width 0.6s;">
+    </div>
+    <div class="position-absolute w-100 text-center fw-bold" style="line-height: 30px;">
+      {{ progress }}%
+    </div>
+  </div>
+
+  <p class="mt-2 text-muted">Выполнено задач: {{ completed_tasks }} из {{ total_tasks }}</p>
 </div>
+</div>
+
 {% endblock %}

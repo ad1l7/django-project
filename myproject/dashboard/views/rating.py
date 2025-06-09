@@ -45,7 +45,7 @@ def rating_view(request):
 
     user_rewards.sort(key=lambda x: x['reward'], reverse=True)
 
-    return render(request, 'dashboard/rating.html', {
+    return render(request, 'dashboard/rating/rating.html', {
         'user_rewards': user_rewards,
         'filter': filter_type
     })

@@ -5,7 +5,6 @@ from dashboard.views import project_access_required
 from users.models import User
 from dashboard.models import Project, ProjectParticipant
 
-
 @project_access_required
 def project_participants(request, pk):
     project = get_object_or_404(Project, pk=pk)
@@ -37,7 +36,7 @@ def project_participants(request, pk):
             participant.save()
             return redirect('dashboard:project_participants', pk=pk)
 
-    return render(request, 'dashboard/project_participants.html', {
+    return render(request, 'dashboard/projects/participants/project_participants.html', {
         'project': project,
         'participants': participants,
         'workers': workers
@@ -60,7 +59,7 @@ def rejected_participants(request, pk):
         messages.success(request, f"{participant.worker.get_full_name()} повторно приглашен.")
         return redirect('dashboard:rejected_participants', pk=pk)
 
-    return render(request, 'dashboard/rejected_participants.html', {
+    return render(request, 'dashboard/projects/participants/rejected_participants.html', {
         'project': project,
         'rejected_participants': rejected
     })

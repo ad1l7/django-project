@@ -9,7 +9,7 @@ from dashboard.models import PersonalTask
 @login_required
 def kanban_board(request):
     tasks = PersonalTask.objects.filter(user=request.user)
-    return render(request, 'dashboard/dashboard.html', {'tasks': tasks})
+    return render(request, 'dashboard/base/dashboard.html', {'tasks': tasks})
 
 @csrf_exempt
 @login_required

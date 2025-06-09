@@ -36,7 +36,7 @@ def admins_view(request):
 
     edit_forms = {adm.id: AdminRegisterForm(instance=adm) for adm in admins}
 
-    return render(request, 'dashboard/admins.html', {
+    return render(request, 'dashboard/admins/admins.html', {
         'admins': admins,
         'form': form,
         'edit_forms': edit_forms,

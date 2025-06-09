@@ -36,7 +36,7 @@ def workers_view(request):
 
     edit_forms = {w.id: WorkerRegisterForm(instance=w) for w in workers}
 
-    return render(request, 'dashboard/workers.html', {
+    return render(request, 'dashboard/workers/workers.html', {
         'workers': workers,
         'form': form,
         'edit_forms': edit_forms,

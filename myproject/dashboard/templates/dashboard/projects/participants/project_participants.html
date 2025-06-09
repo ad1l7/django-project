@@ -1,4 +1,4 @@
-{% extends 'dashboard/project_base.html' %}
+{% extends 'dashboard/projects/base/project_base.html' %}
 {% block content %}
 <style>:root {
   --primary: #4361ee;
@@ -407,40 +407,58 @@
   }
 }</style>
 <div class="section">
-  <h3 class="section-title"><i class="fas fa-comments"></i> Чат проекта</h3>
+  <h3 class="section-title"><i class="fas fa-users"></i> Участники проекта</h3>
   
-  <div class="chat-container">
-    <div class="chat-header">
-      <h5>Общий чат проекта: {{ project.title }}</h5>
-    </div>
-    <div class="chat-messages">
-      {% for msg in messages %}
-        <div class="message {% if msg.sender == request.user %}message-sent{% else %}message-received{% endif %}">
-          <div class="message-sender">
-            {{ msg.sender.get_full_name }}
-            {% if msg.sender == request.user %}(Вы){% endif %}
+  <div class="participants-list">
+    {% for p in participants %}
+      <div class="participant-card">
+        <div class="participant-avatar">{{ p.worker.get_initials }}</div>
+        <div class="participant-info">
+          <div class="participant-name">{{ p.worker.get_full_name }}</div>
+          <div class="participant-status 
+            {% if p.status == 'approved' %}status-approved
+            {% elif p.status == 'applied' or p.status == 'invited' %}status-pending
+            {% else %}status-rejected{% endif %}">
+            {{ p.get_status_display }}
           </div>
-          <div class="message-text">{{ msg.content }}</div>
-          <div class="message-time">{{ msg.timestamp|date:"Y-m-d H:i" }}</div>
         </div>
-      {% empty %}
-        <div class="text-center p-4">
-          <i class="fas fa-comment-slash fa-2x mb-3 text-muted"></i>
-          <p>Сообщений пока нет. Будьте первым, кто напишет!</p>
-        </div>
-      {% endfor %}
-    </div>
-    <form method="post" class="chat-input">
-      {% csrf_token %}
-      <input type="text" 
-             name="content" 
-             class="form-control" 
-             placeholder="Напишите сообщение..." 
-             required>
-      <button type="submit" name="send_message" class="btn btn-primary">
-        <i class="fas fa-paper-plane"></i>
-      </button>
-    </form>
+        {% if request.user.role in 'DIRECTOR,ADMIN' and p.status in 'applied,invited' %}
+          <div class="action-buttons">
+            <form method="post" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="participant_id" value="{{ p.id }}">
+              <button name="approve_participant" class="btn-icon btn-approve" title="Утвердить">
+                <i class="fas fa-check"></i>
+              </button>
+              <button name="reject_participant" class="btn-icon btn-reject" title="Отклонить">
+                <i class="fas fa-times"></i>
+              </button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
   </div>
+  
+  {% if request.user.role in 'DIRECTOR,ADMIN' %}
+    <h5 class="mt-4 mb-3">Пригласить работника</h5>
+    <form method="post" class="row g-3">
+      {% csrf_token %}
+      <input type="hidden" name="invite_worker" value="1">
+      <div class="col-md-8">
+        <select name="worker_id" class="form-select">
+          <option selected disabled>Выберите сотрудника</option>
+          {% for worker in workers %}
+            <option value="{{ worker.id }}">{{ worker.get_full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="fas fa-paper-plane me-2"></i> Пригласить
+        </button>
+      </div>
+    </form>
+  {% endif %}
 </div>
 {% endblock %}

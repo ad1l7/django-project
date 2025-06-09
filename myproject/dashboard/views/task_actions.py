@@ -16,7 +16,6 @@ def take_task(request, task_id):
         task.save()
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
-
 @require_POST
 @login_required
 def drop_task(request, task_id):
@@ -25,7 +24,6 @@ def drop_task(request, task_id):
     task.status = 'free'
     task.save()
     return redirect(request.META.get('HTTP_REFERER', '/'))
-
 
 @require_POST
 @login_required
@@ -43,7 +41,6 @@ def submit_task(request, task_id):
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
-
 @login_required
 def approve_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)
@@ -60,7 +57,6 @@ def approve_task(request, task_id):
 
     return redirect('dashboard:submitted_tasks', pk=task.project.id)
 
-
 @login_required
 def reject_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)
@@ -76,12 +72,10 @@ def reject_task(request, task_id):
 
     return redirect('dashboard:submitted_tasks', pk=task.project.id)
 
-
 @login_required
 def my_tasks(request):
     tasks = Task.objects.filter(assigned_to=request.user)
-    return render(request, 'dashboard/my_tasks.html', {'tasks': tasks})
-
+    return render(request, 'dashboard/my_tasks/my_tasks.html', {'tasks': tasks})
 
 @project_access_required
 @login_required
@@ -94,7 +88,7 @@ def my_tasks_view(request, pk):
     done_count = taken_tasks.filter(status='done').count()
     progress = int((done_count / total_taken) * 100) if total_taken > 0 else 0
 
-    return render(request, 'dashboard/my_tasks.html', {
+    return render(request, 'dashboard/my_tasks/my_tasks.html', {
         'project': project,
         'tasks': tasks,
         'progress': progress,
@@ -102,17 +96,15 @@ def my_tasks_view(request, pk):
         'total_taken': total_taken,
     })
 
-
 @login_required
 def submitted_tasks_view(request, pk):
     project = get_object_or_404(Project, pk=pk)
     tasks = Task.objects.filter(status='submitted', project=project).select_related('assigned_to')
 
-    return render(request, 'dashboard/submitted_tasks.html', {
+    return render(request, 'dashboard/projects/tasks/submitted_tasks.html', {
         'tasks': tasks,
         'project': project,
     })
-
 
 @login_required
 def completed_tasks_view(request, pk):
@@ -122,7 +114,7 @@ def completed_tasks_view(request, pk):
     project = get_object_or_404(Project, pk=pk)
     tasks = Task.objects.filter(status='done', project=project).select_related('assigned_to')
 
-    return render(request, 'dashboard/completed_tasks.html', {
+    return render(request, 'dashboard/projects/tasks/completed_tasks.html', {
         'tasks': tasks,
         'project': project,
     })

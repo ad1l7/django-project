@@ -13,7 +13,7 @@ def project_overview(request, pk):
     if total_tasks > 0:
         progress = int((completed_tasks / total_tasks) * 100)
 
-    return render(request, 'dashboard/project_overview.html', {
+    return render(request, 'dashboard/projects/overview/project_overview.html', {
         'project': project,
         'progress': progress,
         'total_tasks': total_tasks,

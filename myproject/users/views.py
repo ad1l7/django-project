@@ -57,7 +57,7 @@ def profile_view(request):
         profile_form = ProfileForm(instance=user, user=user)
         password_form = PasswordForm(user)
 
-    return render(request, 'dashboard/profile.html', {
+    return render(request, 'dashboard/base/profile.html', {
         'form': profile_form,
         'pass_form': password_form,
     })

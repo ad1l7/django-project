@@ -21,7 +21,7 @@ def project_tasks(request, pk):
     else:
         form = None
 
-    return render(request, 'dashboard/project_tasks.html', {
+    return render(request, 'dashboard/tasks/project_tasks.html', {
         'project': project,
         'tasks': tasks,
         'form': form,
@@ -39,7 +39,7 @@ def create_task(request):
             task.project = Project.objects.first()  # либо выбрать из формы
             task.save()
             return redirect('dashboard:tasks_list')
-    return render(request, 'dashboard/create_task.html', {'form': form})
+    return render(request, 'dashboard/tasks/create_task.html', {'form': form})
 
 
 @user_passes_test(lambda u: u.is_authenticated and u.role in ('DIRECTOR', 'ADMIN'), login_url='users:auth')
@@ -53,7 +53,7 @@ def edit_task(request, task_id):
             return redirect(f"{request.GET.get('next', '/dashboard/tasks/?project_id=' + str(task.project.id))}")
     else:
         form = TaskForm(instance=task)
-    return render(request, 'dashboard/edit_task.html', {'form': form, 'task': task})
+    return render(request, 'dashboard/tasks/edit_task.html', {'form': form, 'task': task})
 
 
 @user_passes_test(lambda u: u.is_authenticated and u.role in ('DIRECTOR', 'ADMIN'), login_url='users:auth')
@@ -88,8 +88,9 @@ def tasks_list(request):
         task.save()
         return redirect(f'{request.path}?project_id={project.id}')
 
-    return render(request, 'dashboard/tasks_list.html', {
+    return render(request, 'dashboard/tasks/tasks_list.html', {
         'project': project,
         'tasks': tasks,
         'form': form,
     })
+    

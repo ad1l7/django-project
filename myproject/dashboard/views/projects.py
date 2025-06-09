@@ -40,7 +40,10 @@ def projects_view(request):
                 project.delete()
                 return redirect('dashboard:projects')
 
-    return render(request, 'dashboard/projects.html', {'projects': projects, 'form': form})
+    return render(request, 'dashboard/projects/projects.html', {
+        'projects': projects,
+        'form': form
+    })
 
 
 def project_access_required(view_func):
@@ -78,7 +81,7 @@ def project_access_denied_custom(request, pk):
         ProjectParticipant.objects.create(project=project, worker=request.user, status='applied')
         return redirect('dashboard:project_access_denied_custom', pk=pk)
 
-    return render(request, 'dashboard/project_access_denied.html', {
+    return render(request, 'dashboard/projects/access/project_access_denied.html', {
         'project': project,
         'message': message,
         'show_apply': show_apply,

@@ -8,7 +8,7 @@ from dashboard.models import PersonalTask
 @login_required
 def dashboard_view(request):
     tasks = PersonalTask.objects.filter(user=request.user)
-    return render(request, 'dashboard/dashboard.html', {'tasks': tasks})
+    return render(request, 'dashboard/base/dashboard.html', {'tasks': tasks})
 
 def logout_view(request):
     logout(request)
@@ -25,7 +25,7 @@ def profile_view(request):
     else:
         form = ProfileForm(instance=user)
 
-    return render(request, 'dashboard/profile.html', {
+    return render(request, 'dashboard/base/profile.html', {
         'user': user,
         'form': form
     })
