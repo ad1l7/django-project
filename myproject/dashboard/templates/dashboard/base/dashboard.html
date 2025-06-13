@@ -11,54 +11,7 @@
 </head>
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'dashboard/css/kanban.css' %}">
-<style>
-    .kanban {
-        font-family: sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .board {
-        display: flex;
-        gap: 20px;
-        margin-top: 30px;
-        align-items: flex-start;
-    }
-
-    .column {
-        width: 300px;
-        height: 500px; /* фиксированная высота */
-        background: #f4f4f4;
-        border-radius: 8px;
-        padding: 10px;
-        overflow-y: auto; /* добавляем вертикальный скролл при переполнении */
-        box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    }
-
-    .column h2 {
-        text-align: center;
-        margin-top: 0;
-    }
-
-    .task {
-        background: white;
-        padding: 10px;
-        margin: 5px 0;
-        border-radius: 6px;
-        cursor: grab;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-
-    .delete-btn {
-        float: right;
-        color: red;
-        cursor: pointer;
-    }
-
-
-</style>
+<link rel="stylesheet" href="{% static 'dashboard/css/base/dashboard.css' %}">
 
 </head>
 <body>
@@ -86,8 +39,9 @@
         {% endfor %}
     </div>
 </div>
-    <script>
-        const tasks = document.querySelectorAll('.task');
+
+<script>
+      const tasks = document.querySelectorAll('.task');
         const columns = document.querySelectorAll('.column');
 
         let draggedTask = null;
@@ -142,7 +96,9 @@ function deleteTask(taskId) {
         }
     });
 }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+console.log('aksak  ')
+</script>
 
 {% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'dashboard/js/base/dashboard.js' %}"></script>

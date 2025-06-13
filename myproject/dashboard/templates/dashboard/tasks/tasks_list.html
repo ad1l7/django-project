@@ -2,6 +2,7 @@
 {% load static %}
 {% load custom_tags %}
 {% block content %}
+<link rel="stylesheet" href="{% static 'dashboard/css/tasks/tasks_list.css' %}">
 <div class="container mt-4">
   <h3>Все задачи проекта "{{ project.title }}"</h3>
   {% if tasks %}
@@ -153,3 +154,4 @@
   </div>
 {% endif %}
 {% endblock %}
+<script src="{% static 'dashboard/js/tasks_list/tasks_list.js' %}"></script>

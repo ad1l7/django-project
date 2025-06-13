@@ -4,11 +4,13 @@ from django.contrib import messages
 from dashboard.views import project_access_required
 from users.models import User
 from dashboard.models import Project, ProjectParticipant
+from django.http import JsonResponse, Http404
+from django.views.decorators.csrf import csrf_exempt
 
 @project_access_required
 def project_participants(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    participants = project.participants.select_related('worker')
+    participants = project.participants.select_related('worker').exclude(status='rejected')
     workers = User.objects.filter(role=User.WORKER)
 
     if request.method == 'POST':
@@ -43,6 +45,7 @@ def project_participants(request, pk):
     })
 
 
+
 @project_access_required
 def rejected_participants(request, pk):
     project = get_object_or_404(Project, pk=pk)
@@ -63,3 +66,23 @@ def rejected_participants(request, pk):
         'project': project,
         'rejected_participants': rejected
     })
+
+
+@csrf_exempt
+@login_required
+def project_participant_profile_api(request, participant_id):
+    try:
+        participant = ProjectParticipant.objects.select_related('worker').get(id=participant_id)
+        user = participant.worker
+        data = {
+            'full_name': user.get_full_name(),
+            'username': user.username,
+            'email': user.email,
+            'position': user.position,
+            'bio': user.bio or '',
+            'photo_url': user.profile_picture.url if user.profile_picture else None,
+        }
+
+        return JsonResponse(data)
+    except ProjectParticipant.DoesNotExist:
+        raise Http404("Участник не найден")

@@ -1,5 +1,7 @@
 {% extends 'dashboard/projects/base/project_base.html' %}
+{% load static %}
 {% block content %}
+<link rel="stylesheet" href="{% static 'dashboard/css/projects/participants/rejected_participants.css' %}">
 <div class="section">
   <h3 class="section-title"><i class="fas fa-user-slash"></i> Отклонённые участники</h3>
 
@@ -23,3 +25,4 @@
   {% endif %}
 </div>
 {% endblock %}
+<script src="{% static 'dashboard/js/projects/participants/rejected_participants.js' %}"></script>

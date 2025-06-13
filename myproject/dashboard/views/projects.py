@@ -16,13 +16,9 @@ def projects_view(request):
         project.done_tasks = done
         project.progress = int((done / total) * 100) if total > 0 else 0
 
-    form = None
     if request.user.role in (User.DIRECTOR, User.ADMIN):
         form = ProjectForm()
         edit_forms = {p.id: ProjectForm(instance=p) for p in projects}
-
-        for project in projects:
-            edit_forms[project.id] = ProjectForm(instance=project)
 
         if request.method == 'POST':
             if 'create_project' in request.POST:
@@ -50,7 +46,13 @@ def projects_view(request):
             'form': form,
             'edit_forms': edit_forms
         })
-
+    
+    # 🟡 Для WORKER — просто отображаем список проектов без форм
+    return render(request, 'dashboard/projects/projects.html', {
+        'projects': projects,
+        'form': None,
+        'edit_forms': {}
+    })
 
 def project_access_required(view_func):
     @wraps(view_func)

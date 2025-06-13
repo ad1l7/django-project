@@ -1,7 +1,8 @@
 {% extends 'dashboard/projects/base/project_base.html' %}
-
+{% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'dashboard/css/my_tasks/my_tasks.css' %}">
 <div class="container mt-4">
   <h3>Мои задачи</h3>
 <div class="mb-4">
@@ -118,3 +119,4 @@
   {% endif %}
 </div>
 {% endblock %}
+<script src="{% static 'dashboard/js/my_tasks/my_tasks.js' %}"></script>

@@ -1,5 +1,7 @@
 {% extends 'dashboard/projects/base/project_base.html' %}
+{% load static %}
 {% block content %}
+<link rel="stylesheet" href="{% static 'dashboard/css/projects/tasks/submitted_tasks.css' %}">
 <div class="container mt-4">
   <h3>Задачи на проверке</h3>
   {% if tasks %}
@@ -83,3 +85,4 @@
   {% endif %}
 </div>
 {% endblock %}
+<script src="{% static 'dashboard/js/projects/tasks/submitted_tasks.js' %}"></script>

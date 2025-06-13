@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
 from users.models import User
 from users.forms import AdminRegisterForm
+from dashboard.forms import AdminEditForm
 
 def is_director(user):
     return user.is_authenticated and user.role == User.DIRECTOR
@@ -29,15 +30,16 @@ def admins_view(request):
         elif 'edit_admin' in request.POST:
             admin_id = request.POST.get('edit_admin')
             admin_to_edit = get_object_or_404(User, id=admin_id, role=User.ADMIN)
-            form = AdminRegisterForm(request.POST, request.FILES, instance=admin_to_edit)
+            form = AdminEditForm(request.POST, request.FILES, instance=admin_to_edit)  # ← ВАЖНО
             if form.is_valid():
                 form.save()
                 return redirect('dashboard:admins')
 
-    edit_forms = {adm.id: AdminRegisterForm(instance=adm) for adm in admins}
+    edit_forms = {adm.id: AdminEditForm(instance=adm) for adm in admins}  # ← И ТУТ ТОЖЕ
 
     return render(request, 'dashboard/admins/admins.html', {
         'admins': admins,
         'form': form,
         'edit_forms': edit_forms,
     })
+
