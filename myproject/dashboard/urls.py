@@ -2,10 +2,9 @@ from django.urls import path
 from . import views
 from .views import (
     dashboard_view, logout_view, admins_view, workers_view,
-    projects_view, redirect
+    projects_view, redirect, statistics
 )
 from dashboard.views.project_chat import fetch_project_messages
-
 app_name = 'dashboard'
 
 urlpatterns = [
@@ -39,7 +38,7 @@ urlpatterns = [
     path('projects/<int:pk>/submitted-tasks/', views.submitted_tasks_view, name='submitted_tasks'),
     path('projects/<int:pk>/completed-tasks/', views.completed_tasks_view, name='completed_tasks'),
     path('api/participants/<int:participant_id>/profile/', views.project_participant_profile_api, name='participant_profile_api'),
-
+    path('projects/<int:pk>/statistics/', statistics, name='statistics'),
     # Задачи
     path('tasks/', views.tasks_list, name='tasks_list'),
     path('tasks/create/', views.create_task, name='create_task'),

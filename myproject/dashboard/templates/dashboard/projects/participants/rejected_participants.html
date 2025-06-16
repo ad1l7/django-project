@@ -6,17 +6,23 @@
   <h3 class="section-title"><i class="fas fa-user-slash"></i> Отклонённые участники</h3>
 
   {% if rejected_participants %}
+    <form method="post" class="mb-3">
+      {% csrf_token %}
+      <button name="clear_rejected" class="btn btn-danger btn-sm">
+        <i class="fas fa-trash"></i> Очистить отклонённых
+      </button>
+    </form>
     {% for p in rejected_participants %}
       <div class="participant-card">
         <div class="participant-avatar">{{ p.worker.get_initials }}</div>
         <div class="participant-info">
           <div class="participant-name">{{ p.worker.get_full_name }}</div>
-          <div class="participant-status status-rejected">Отклонен</div>
+          <div class="participant-status status-rejected">Отклонён</div>
         </div>
         <form method="post" class="d-inline">
           {% csrf_token %}
           <input type="hidden" name="participant_id" value="{{ p.id }}">
-          <button name="reinvite_participant" class="btn btn-success btn-sm">Пригласить снова</button>
+          <button name="approve_rejected" class="btn btn-success btn-sm">Добавить</button>
         </form>
       </div>
     {% endfor %}

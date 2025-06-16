@@ -35,3 +35,4 @@ function openDeleteModal(participantId) {
     modal.show();
   }
 }
+

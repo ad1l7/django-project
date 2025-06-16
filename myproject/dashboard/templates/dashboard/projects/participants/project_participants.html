@@ -25,60 +25,60 @@
     {{ p.get_status_display }}
   </div>
 
-        {% if request.user.role in 'DIRECTOR,ADMIN' %}
+        {% if request.user.role == 'DIRECTOR' or request.user.role == 'ADMIN' %}
           <div class="dropdown action-dropdown" onclick="event.stopPropagation();">
-            <button class="btn btn-link btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="fas fa-ellipsis-v"></i>
-            </button>
-            <ul class="dropdown-menu">
+  <button class="btn btn-link btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="fas fa-ellipsis-v"></i>
+  </button>
+<ul class="dropdown-menu">
+  <!-- Просмотр профиля -->
   <li>
     <button type="button" class="dropdown-item" onclick="event.stopPropagation(); openProfileModal({{ p.id }})">
       <i class="fas fa-user"></i> Просмотреть
     </button>
   </li>
 
-  {% if p.status != 'approved' %}
+  {% if p.status == 'approved' %}
+    <!-- Только удалить -->
     <li>
-      <form method="post">
-        {% csrf_token %}
-        <input type="hidden" name="participant_id" value="{{ p.id }}">
-        <button name="approve_participant" class="dropdown-item text-success" onclick="event.stopPropagation();">
-          <i class="fas fa-check"></i> Принять
-        </button>
-      </form>
+      <button type="button" class="dropdown-item text-danger" onclick="event.stopPropagation(); openDeleteModal({{ p.id }})">
+        <i class="fas fa-trash"></i> Удалить
+      </button>
     </li>
-  {% endif %}
 
- {% if p.status != 'rejected' and p.status != 'approved' %}
-
+  {% elif p.status == 'applied' %}
+    <!-- Принять -->
     <li>
-      <form method="post">
-        {% csrf_token %}
-        <input type="hidden" name="participant_id" value="{{ p.id }}">
-        <button name="reject_participant" class="dropdown-item text-warning" onclick="event.stopPropagation();">
-          <i class="fas fa-times"></i> Отклонить
-        </button>
-      </form>
+      <button type="submit" class="dropdown-item text-success" onclick="event.stopPropagation(); approveParticipant({{ p.id }})">
+        <i class="fas fa-check"></i> Принять
+      </button>
     </li>
-  {% endif %}
 
-  {% if p.status != 'invited' %}
+    <!-- Отклонить -->
     <li>
-      <button class="dropdown-item text-danger" onclick="event.stopPropagation(); openDeleteModal({{ p.id }})">
+      <button type="submit" class="dropdown-item text-warning" onclick="event.stopPropagation(); rejectParticipant({{ p.id }})">
+        <i class="fas fa-times"></i> Отклонить
+      </button>
+    </li>
+
+  {% elif p.status == 'invited' and p.is_invited %}
+    <!-- Только удалить -->
+    <li>
+      <button type="button" class="dropdown-item text-danger" onclick="event.stopPropagation(); openDeleteModal({{ p.id }})">
         <i class="fas fa-trash"></i> Удалить
       </button>
     </li>
   {% endif %}
 </ul>
-          </div>
+</div>
         {% endif %}
       </div>
     {% endfor %}
   </div>
 
-  {% if request.user.role in 'DIRECTOR,ADMIN' %}
+{% if request.user.role == 'DIRECTOR' or request.user.role == 'ADMIN' %}
     <h5 class="mt-4 mb-3">Пригласить работника</h5>
-    <form method="post" class="row g-3">
+    <form method="post" id="inviteForm" class="row g-3" ">
       {% csrf_token %}
       <input type="hidden" name="invite_worker" value="1">
       <div class="col-md-8">
@@ -159,7 +159,36 @@
 <script src="{% static 'dashboard/js/projects/participants/project_participants.js' %}"></script>
 <script>
   const getProfileUrl = (id) => `{% url 'dashboard:participant_profile_api' 0 %}`.replace("0", id);
-</script>
 
+  function approveParticipant(id) {
+    sendFormPost('approve_participant', id);
+  }
+
+  function rejectParticipant(id) {
+    sendFormPost('reject_participant', id);
+  }
+
+  function openDeleteModal(id) {
+    document.getElementById('deleteParticipantId').value = id;
+    const modal = new bootstrap.Modal(document.getElementById('deleteParticipantModal'));
+    modal.show();
+  }
+
+  function sendFormPost(action, participantId) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = window.location.href;
+    form.style.display = 'none';
+    form.innerHTML = `
+      <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+      <input type="hidden" name="participant_id" value="${participantId}">
+      <input type="hidden" name="${action}" value="1">
+    `;
+    document.body.appendChild(form);
+    form.submit();
+  }
+</script>
 
 {% endblock %}

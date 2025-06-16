@@ -53,4 +53,4 @@ function deleteTask(taskId) {
         }
     });
 }
-console.log('aksak')
+console.log('aksak  ')

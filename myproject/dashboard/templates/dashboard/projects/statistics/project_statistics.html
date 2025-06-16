@@ -1,0 +1,132 @@
+{% extends 'dashboard/projects/base/project_base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2><i class="fas fa-chart-bar"></i> Statistics</h2>
+
+  <div class="table-responsive mt-4">
+    <table id="stats-table" class="table table-bordered table-striped table-hover">
+<thead class="table-dark">
+  <tr>
+    <th>Имя участника 🔽<br>
+      <select class="form-select form-select-sm filter" data-column="0">
+        <option value="">Все</option>
+        {% for item in statistics %}
+          <option value="{{ item.name }}">{{ item.name }}</option>
+        {% endfor %}
+      </select>
+    </th>
+    <th>Роль 🔽<br>
+      <select class="form-select form-select-sm filter" data-column="1">
+        <option value="">Все</option>
+        <option value="👨‍💼 Директор">👨‍💼 Директор</option>
+        <option value="🧑‍💼 Админ">🧑‍💼 Админ</option>
+        <option value="👷 Работник">👷 Работник</option>
+      </select>
+    </th>
+    <th>Выполнено задач 🔽<br>
+      <select class="form-select form-select-sm range-filter" data-column="2">
+        <option value="">Все</option>
+        <option value=">10">&gt;10</option>
+        <option value=">30">&gt;30</option>
+        <option value=">50">&gt;50</option>
+        <option value=">70">&gt;70</option>
+        <option value=">100">&gt;100</option>
+      </select>
+    </th>
+    <th>Отменено задач 🔽<br>
+      <select class="form-select form-select-sm range-filter" data-column="3">
+        <option value="">Все</option>
+        <option value=">10">&gt;10</option>
+        <option value=">30">&gt;30</option>
+        <option value=">50">&gt;50</option>
+        <option value=">70">&gt;70</option>
+        <option value=">100">&gt;100</option>
+      </select>
+    </th>
+    <th>Награда (баллы) 🔽<br>
+      <select class="form-select form-select-sm range-filter" data-column="4">
+        <option value="">Все</option>
+        <option value=">10">&gt;10</option>
+        <option value=">30">&gt;30</option>
+        <option value=">50">&gt;50</option>
+        <option value=">70">&gt;70</option>
+        <option value=">100">&gt;100</option>
+      </select>
+    </th>
+    <th>Всего задач 🔽<br>
+      <select class="form-select form-select-sm range-filter" data-column="5">
+        <option value="">Все</option>
+        <option value=">10">&gt;10</option>
+        <option value=">30">&gt;30</option>
+        <option value=">50">&gt;50</option>
+        <option value=">70">&gt;70</option>
+        <option value=">100">&gt;100</option>
+      </select>
+    </th>
+  </tr>
+</thead>
+      <tbody>
+        {% for item in statistics %}
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ item.role }}</td>
+          <td>{{ item.done }}</td>
+          <td>{{ item.canceled }}</td>
+          <td>{{ item.reward }}</td>
+          <td>{{ item.total }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+  $(document).ready(function () {
+    const table = $('#stats-table').DataTable({
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/ru.json'
+      },
+      orderCellsTop: true,
+      fixedHeader: true
+    });
+
+    // Точный фильтр (имя и роль)
+    $('.filter').on('change', function () {
+      const colIndex = $(this).data('column');
+      table.column(colIndex).search(this.value).draw();
+    });
+
+    // Фильтр по диапазону (> N)
+    $('.range-filter').on('change', function () {
+      const colIndex = $(this).data('column');
+      const threshold = parseInt(this.value.replace('>', ''));
+
+      table.column(colIndex).search('').draw(); // сброс
+      table.rows().every(function () {
+        const value = parseInt(this.data()[colIndex]);
+        if (!isNaN(threshold)) {
+          if (value > threshold) {
+            $(this.node()).show();
+          } else {
+            $(this.node()).hide();
+          }
+        } else {
+          $(this.node()).show();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

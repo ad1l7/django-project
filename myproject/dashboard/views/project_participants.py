@@ -11,17 +11,34 @@ from django.views.decorators.csrf import csrf_exempt
 def project_participants(request, pk):
     project = get_object_or_404(Project, pk=pk)
     participants = project.participants.select_related('worker').exclude(status='rejected')
-    workers = User.objects.filter(role=User.WORKER)
+
+    # 👇 Исключаем всех участников проекта (в любом статусе) из выпадающего списка
+    existing_worker_ids = project.participants.values_list('worker_id', flat=True)
+    workers = User.objects.filter(role=User.WORKER).exclude(id__in=existing_worker_ids)
 
     if request.method == 'POST':
         if 'invite_worker' in request.POST:
             worker_id = request.POST.get('worker_id')
+            if not worker_id:
+                messages.error(request, "Пожалуйста, выберите сотрудника для приглашения.")
+                return redirect('dashboard:project_participants', pk=pk)
+
             worker = get_object_or_404(User, id=worker_id, role=User.WORKER)
-            ProjectParticipant.objects.get_or_create(
+
+            participant, created = ProjectParticipant.objects.get_or_create(
                 project=project,
                 worker=worker,
-                defaults={'status': 'invited'}
+                defaults={'status': 'approved', 'is_invited': True}
             )
+
+            if not created:
+                participant.status = 'approved'
+                participant.is_invited = True
+                participant.save()
+                messages.warning(request, f"{worker.get_full_name()} уже был добавлен, статус обновлён.")
+            else:
+                messages.success(request, f"{worker.get_full_name()} успешно приглашён и утверждён.")
+
             return redirect('dashboard:project_participants', pk=pk)
 
         elif 'approve_participant' in request.POST:
@@ -46,21 +63,29 @@ def project_participants(request, pk):
 
 
 
+
 @project_access_required
 def rejected_participants(request, pk):
     project = get_object_or_404(Project, pk=pk)
+
     rejected = ProjectParticipant.objects.filter(
         project=project,
         status='rejected'
     ).select_related('worker')
 
-    if request.method == 'POST' and 'reinvite_participant' in request.POST:
-        participant_id = request.POST.get('participant_id')
-        participant = get_object_or_404(ProjectParticipant, id=participant_id, project=project)
-        participant.status = 'invited'
-        participant.save()
-        messages.success(request, f"{participant.worker.get_full_name()} повторно приглашен.")
-        return redirect('dashboard:rejected_participants', pk=pk)
+    if request.method == 'POST':
+        if 'approve_rejected' in request.POST:
+            participant_id = request.POST.get('participant_id')
+            participant = get_object_or_404(ProjectParticipant, id=participant_id, project=project)
+            participant.status = 'approved'
+            participant.save()
+            messages.success(request, f"{participant.worker.get_full_name()} добавлен в проект.")
+            return redirect('dashboard:rejected_participants', pk=pk)
+
+        elif 'clear_rejected' in request.POST:
+            rejected.delete()
+            messages.info(request, "Список отклонённых участников очищен.")
+            return redirect('dashboard:rejected_participants', pk=pk)
 
     return render(request, 'dashboard/projects/participants/rejected_participants.html', {
         'project': project,

@@ -20,6 +20,7 @@ def take_task(request, task_id):
 @login_required
 def drop_task(request, task_id):
     task = get_object_or_404(Task, id=task_id, assigned_to=request.user)
+    task.canceled_by = request.user  # 💡 сохраняем, кто отменил задачу
     task.assigned_to = None
     task.status = 'free'
     task.save()

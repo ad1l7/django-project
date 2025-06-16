@@ -23,7 +23,6 @@ class Project(models.Model):
     def __str__(self):
         return self.title
 
-
 class ProjectParticipant(models.Model):
     STATUS_CHOICES = [
         ('applied', 'Заявка подана'),
@@ -35,6 +34,7 @@ class ProjectParticipant(models.Model):
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='participants')
     worker = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='applied')
+    is_invited = models.BooleanField(default=False)  # 🆕 добавлено
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -42,6 +42,7 @@ class ProjectParticipant(models.Model):
 
     def __str__(self):
         return f"{self.worker.get_full_name()} - {self.project.title} ({self.get_status_display()})"
+
     
 
 class ProjectMessage(models.Model):
@@ -76,6 +77,8 @@ class Task(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     submitted_file = models.FileField(upload_to='submitted_tasks/', blank=True, null=True)
     submitted_comment = models.TextField(blank=True, null=True)
+    canceled_by = models.ForeignKey(
+    User, null=True, blank=True, on_delete=models.SET_NULL, related_name='canceled_tasks')
 
     def __str__(self):
         return self.title
