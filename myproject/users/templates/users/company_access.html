@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход в платформу</title>
+    <link rel="stylesheet" href="{% static 'access/css/company_access.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h2>Добро пожаловать</h2>
+        <div class="access-forms">
+            <div class="director-form">
+                <h4>Для директоров</h4>
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <!-- Форма входа/регистрации директора -->
+                </form>
+            </div>
+            <div class="worker-form">
+                <h4>Для работников</h4>
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <!-- Форма входа для персонала -->
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

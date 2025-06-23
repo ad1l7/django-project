@@ -2,6 +2,7 @@
 {% load static %}
 {% load custom_tags %}
 {% block content %}
+
 <link rel="stylesheet" href="{% static 'dashboard/css/tasks/tasks_list.css' %}">
 <div class="container mt-4">
   <h3>Все задачи проекта "{{ project.title }}"</h3>
@@ -15,6 +16,7 @@
             <small>Комментарий: {{ task.description|default:"Нет информации" }}</small><br>
             <small>Файл: {% if task.file %}<a href="{{ task.file.url }}">Скачать</a>{% else %}Нет информации{% endif %}</small><br>
             <small>Награда: {{ task.reward|default:"Нет информации" }}</small><br>
+            <small>Сложность: {{ task.get_difficulty_display|default:"Нет" }}</small><br>
             <small>Статус: {{ task.get_status_display }}</small><br>
 
             {% if task.status == 'free' %}
@@ -50,28 +52,30 @@
                   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 {% with edit_form=edit_forms|get_item:task.id %}
-<div class="modal-body">
-                    <div class="mb-3">
-                      {{ edit_form.title.label_tag }} {{ edit_form.title }} {{ edit_form.title.errors }}
-                    </div>
-                    <div class="mb-3">
-                      {{ edit_form.deadline.label_tag }} {{ edit_form.deadline }} {{ edit_form.deadline.errors }}
-                    </div>
-                    <div class="mb-3">
-                      {{ edit_form.description.label_tag }} {{ edit_form.description }} {{ edit_form.description.errors }}
-                    </div>
-                    <div class="mb-3">
-                      {{ edit_form.reward.label_tag }} {{ edit_form.reward }} {{ edit_form.reward.errors }}
-                    </div>
-                    <div class="mb-3">
-                      {{ edit_form.file.label_tag }} {{ edit_form.file }} {{ edit_form.file.errors }}
-                      {% if task.file %}
-                        <small>Текущий: <a href="{{ task.file.url }}" target="_blank">Скачать</a></small>
-                      {% endif %}
-                    </div>
-                    </div>
-                  {% endwith %}
-                
+                <div class="modal-body">
+                  <div class="mb-3">
+                    {{ edit_form.title.label_tag }} {{ edit_form.title }} {{ edit_form.title.errors }}
+                  </div>
+                  <div class="mb-3">
+                    {{ edit_form.deadline.label_tag }} {{ edit_form.deadline }} {{ edit_form.deadline.errors }}
+                  </div>
+                  <div class="mb-3">
+                    {{ edit_form.description.label_tag }} {{ edit_form.description }} {{ edit_form.description.errors }}
+                  </div>
+                  <div class="mb-3">
+                    {{ edit_form.reward.label_tag }} {{ edit_form.reward }} {{ edit_form.reward.errors }}
+                  </div>
+                  <div class="mb-3">
+                    {{ edit_form.difficulty.label_tag }} {{ edit_form.difficulty }} {{ edit_form.difficulty.errors }}
+                  </div>
+                  <div class="mb-3">
+                    {{ edit_form.file.label_tag }} {{ edit_form.file }} {{ edit_form.file.errors }}
+                    {% if task.file %}
+                      <small>Текущий: <a href="{{ task.file.url }}" target="_blank">Скачать</a></small>
+                    {% endif %}
+                  </div>
+                </div>
+                {% endwith %}
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                   <button type="submit" class="btn btn-success">Сохранить</button>
@@ -116,7 +120,7 @@
     </button>
   </div>
 
-  <!-- Модальное окно создания задачи -->
+  <!-- Модалка создания задачи -->
   <div class="modal fade" id="createTaskModal" tabindex="-1" aria-labelledby="createTaskModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -141,6 +145,9 @@
               {{ form.reward.label_tag }} {{ form.reward }} {{ form.reward.errors }}
             </div>
             <div class="mb-3">
+              {{ form.difficulty.label_tag }} {{ form.difficulty }} {{ form.difficulty.errors }}
+            </div>
+            <div class="mb-3">
               {{ form.file.label_tag }} {{ form.file }} {{ form.file.errors }}
             </div>
           </div>
@@ -153,5 +160,7 @@
     </div>
   </div>
 {% endif %}
+
 {% endblock %}
+
 <script src="{% static 'dashboard/js/tasks_list/tasks_list.js' %}"></script>

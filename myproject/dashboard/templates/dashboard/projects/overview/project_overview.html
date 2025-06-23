@@ -3,11 +3,60 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'dashboard/css/projects/overview/project_overview.css' %}">
-<style></style>
+
 <div class="project-header">
+  {% if request.user.role in 'DIRECTOR ADMIN' and not project.is_closed %}
+  <div class="mt-4" id="controlButtons">
+    <!-- Кнопка запуска модалки -->
+    <button id="startCloseBtn" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#closeProjectModal">
+      <i class="fas fa-times-circle"></i> Завершить проект
+    </button>
+  </div>
+
+  <!-- Модалка подтверждения -->
+  <div class="modal fade" id="closeProjectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Завершить проект?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Вы уверены, что хотите завершить проект <strong>{{ project.title }}</strong>?<br>
+          После подтверждения у вас будет 15 секунд, чтобы отменить действие.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="button" class="btn btn-danger" id="confirmClose">Подтвердить завершение</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Форма закрытия проекта -->
+  <form id="closeForm" method="post" action="{% url 'dashboard:close_project' project.id %}" style="display: none;">
+    {% csrf_token %}
+  </form>
+
+  <div id="cancelContainer" class="mt-2 d-none">
+    <button id="cancelCloseBtn" class="btn btn-danger">Отменить (<span id="countdown">15</span>)</button>
+  </div>
+
+  {% elif project.is_closed %}
+  <div class="alert alert-danger mt-4 fw-bold">
+    Этот проект завершён. Работники исключены.
+  </div>
+  {% endif %}
+
   <h1 class="project-title"><i class="fas fa-rocket"></i> {{ project.title }}</h1>
   <p class="project-description">{{ project.description }}</p>
-  
+
+  {% if project.is_closed %}
+  <div class="alert alert-danger mt-3">
+    <i class="fas fa-exclamation-triangle"></i> Проект завершён
+  </div>
+  {% endif %}
+
   <div class="project-details">
     <div class="detail-card">
       <h5><i class="far fa-calendar-alt"></i> Дедлайн</h5>
@@ -32,23 +81,60 @@
       <h5><i class="fas fa-user-tie"></i> Создано</h5>
       <p>{{ project.created_by.get_full_name }}</p>
     </div>
-    
-  </div>
-    
-<div class="mt-4">
-  <h5 class="mb-3">Прогресс выполнения задач</h5>
-
-  <div class="position-relative" style="height: 30px; background-color: #f0f0f0; border: 2px solid #ccc; border-radius: 15px; overflow: hidden;">
-    <div class="position-absolute start-0 top-0 h-100"
-         style="width: {{ progress }}%; background: linear-gradient(90deg, #28a745, #218838); transition: width 0.6s;">
-    </div>
-    <div class="position-absolute w-100 text-center fw-bold" style="line-height: 30px;">
-      {{ progress }}%
-    </div>
   </div>
 
-  <p class="mt-2 text-muted">Выполнено задач: {{ completed_tasks }} из {{ total_tasks }}</p>
+  <div class="mt-4">
+    <h5 class="mb-3">Прогресс выполнения задач</h5>
+    <div class="position-relative" style="height: 30px; background-color: #f0f0f0; border: 2px solid #ccc; border-radius: 15px; overflow: hidden;">
+      <div class="position-absolute start-0 top-0 h-100"
+          style="width: {{ progress }}%; background: linear-gradient(90deg, #28a745, #218838); transition: width 0.6s;">
+      </div>
+      <div class="position-absolute w-100 text-center fw-bold" style="line-height: 30px;">
+        {{ progress }}%
+      </div>
+    </div>
+    <p class="mt-2 text-muted">Выполнено задач: {{ completed_tasks }} из {{ total_tasks }}</p>
+  </div>
 </div>
-</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const confirmBtn = document.getElementById("confirmClose");
+  const cancelBtn = document.getElementById("cancelCloseBtn");
+  const cancelContainer = document.getElementById("cancelContainer");
+  const startBtn = document.getElementById("startCloseBtn");
+  const closeForm = document.getElementById("closeForm");
+  const countdownEl = document.getElementById("countdown");
+  let countdown = 15;
+  let intervalId = null;
+
+  confirmBtn.addEventListener("click", () => {
+    document.getElementById("closeProjectModal").classList.remove("show");
+    document.querySelector(".modal-backdrop")?.remove();
+    document.body.classList.remove("modal-open");
+    document.body.style = "";
+
+    startBtn.style.display = "none";
+    cancelContainer.classList.remove("d-none");
+
+    intervalId = setInterval(() => {
+      countdown -= 1;
+      countdownEl.textContent = countdown;
+      if (countdown <= 0) {
+        clearInterval(intervalId);
+        closeForm.submit();
+      }
+    }, 1000);
+  });
+
+  cancelBtn.addEventListener("click", () => {
+    clearInterval(intervalId);
+    cancelContainer.classList.add("d-none");
+    startBtn.style.display = "inline-block";
+    countdown = 15;
+    countdownEl.textContent = countdown;
+  });
+});
+</script>
 <script src="{% static 'dashboard/js/projects/overview/project_overview.js' %}"></script>
 {% endblock %}

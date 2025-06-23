@@ -12,6 +12,10 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import update_session_auth_hash
 from .forms import ProfileForm, PasswordForm
 
+
+def company_access_view(request):
+    return render(request, 'users/company_access.html')
+
 def auth_view(request):
     reg_form   = RegisterForm()
     login_form = LoginForm(request=request, data=request.POST or None)

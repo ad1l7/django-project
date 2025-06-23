@@ -19,14 +19,17 @@
   </div>
   <p class="mt-2 text-muted">Выполнено: {{ done_count }} из {{ total_taken }}</p>
 </div>
-
+<div class="alert alert-info">
+  У вас {{ total_taken }} активных задач. Лимит: 3.
+</div>
   {% if tasks %}
     <ul class="list-group">
       {% for task in tasks %}
         <li class="list-group-item">
           <strong>{{ task.title }}</strong> — статус: {{ task.get_status_display }}
           <br><small>Проект: {{ task.project.title }}</small>
-          <br><small>Срок: {{ task.deadline }}</small><br>
+          <br><small>Срок: {{ task.deadline }}</small>
+          <br><small>Сложность: {{ task.get_difficulty_display }}</small><br>
 
           {% if task.status == 'submitted' %}
             <div class="mt-2 text-warning">

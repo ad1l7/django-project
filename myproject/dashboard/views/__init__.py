@@ -10,4 +10,3 @@ from .project_tasks import *
 from .task_actions import *
 from .rating import *
 from .statistics import statistics
-from .project_participants import project_participants, rejected_participants

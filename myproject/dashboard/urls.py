@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from .views import (
     dashboard_view, logout_view, admins_view, workers_view,
-    projects_view, redirect, statistics
+    projects_view, redirect, statistics,close_project,
 )
 from dashboard.views.project_chat import fetch_project_messages
 app_name = 'dashboard'
@@ -39,6 +39,7 @@ urlpatterns = [
     path('projects/<int:pk>/completed-tasks/', views.completed_tasks_view, name='completed_tasks'),
     path('api/participants/<int:participant_id>/profile/', views.project_participant_profile_api, name='participant_profile_api'),
     path('projects/<int:pk>/statistics/', statistics, name='statistics'),
+    path('projects/<int:pk>/close/', close_project, name='close_project'),
     # Задачи
     path('tasks/', views.tasks_list, name='tasks_list'),
     path('tasks/create/', views.create_task, name='create_task'),

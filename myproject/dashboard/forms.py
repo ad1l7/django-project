@@ -3,6 +3,7 @@ from .models import Project,  ProjectParticipant,ProjectMessage
 from .models import Task
 from django import forms
 from users.models import User
+from .models import RewardItem
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
@@ -35,12 +36,12 @@ class ProjectMessageForm(forms.ModelForm):
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'deadline', 'description', 'file', 'reward']
+        fields = ['title', 'deadline', 'description', 'file', 'reward', 'difficulty']
         widgets = {
             'deadline': forms.DateInput(attrs={'type': 'date'}),
             'description': forms.Textarea(attrs={'rows': 4}),
+            'difficulty': forms.Select(attrs={'class': 'form-select'}),
         }
-
 
 class WorkerEditForm(forms.ModelForm):
     new_password = forms.CharField(
@@ -109,3 +110,13 @@ class AdminEditForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+class RewardItemForm(forms.ModelForm):
+    class Meta:
+        model = RewardItem
+        fields = ['name', 'image', 'price']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control'}),
+        }

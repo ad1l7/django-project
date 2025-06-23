@@ -4,13 +4,16 @@ from django.contrib.auth.decorators import user_passes_test, login_required
 from dashboard.models import Project, Task
 from dashboard.forms import TaskForm
 from dashboard.views import project_access_required
+from users.models import User
 @project_access_required
 def project_tasks(request, pk):
     project = get_object_or_404(Project, pk=pk)
     tasks = project.tasks.all()
     form = TaskForm(request.POST or None, request.FILES or None)
 
-    if request.user.role in (Project.DIRECTOR, Project.ADMIN):
+    edit_forms = {task.id: TaskForm(instance=task) for task in tasks}
+
+    if request.user.role in (User.DIRECTOR, User.ADMIN):
         if request.method == 'POST' and form.is_valid():
             task = form.save(commit=False)
             task.project = project
@@ -20,11 +23,13 @@ def project_tasks(request, pk):
     else:
         form = None
 
-    return render(request, 'dashboard/tasks/project_tasks.html', {
+    return render(request, 'dashboard/tasks/tasks_list.html', {
         'project': project,
         'tasks': tasks,
         'form': form,
+        'edit_forms': edit_forms,
     })
+
 
 
 @user_passes_test(lambda u: u.is_authenticated and u.role in ('DIRECTOR', 'ADMIN'), login_url='users:auth')
@@ -96,3 +101,18 @@ def tasks_list(request):
         'form': form,
         'edit_forms': edit_forms  # ← обязательно!
     })
+
+@login_required
+def reject_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+
+    # Только назначенный исполнитель может отказаться
+    if task.assigned_to == request.user:
+        task.assigned_to = None
+        task.status = 'free'
+        task.save()
+        messages.info(request, 'Вы отказались от задачи.')
+    else:
+        messages.warning(request, 'Вы не можете отказаться от этой задачи.')
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))

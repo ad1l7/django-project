@@ -10,10 +10,22 @@ from dashboard.views import project_access_required
 @login_required
 def take_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)
+
+    # ✅ Учитываем только активные задачи (НЕ считаем done и free)
+    active_tasks_count = Task.objects.filter(
+        assigned_to=request.user,
+        status__in=['in_progress', 'submitted']  # 🔥 'done' больше не учитывается!
+    ).count()
+
+    if active_tasks_count > 3:
+        messages.error(request, 'Вы не можете взять больше 3 задач одновременно. Завершите текущие задачи.')
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
     if task.status == 'free':
         task.status = 'in_progress'
         task.assigned_to = request.user
         task.save()
+
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 @require_POST

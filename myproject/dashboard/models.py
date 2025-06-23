@@ -19,7 +19,7 @@ class Project(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_projects')
     created_at = models.DateTimeField(auto_now_add=True)
     required_workers = models.PositiveIntegerField(verbose_name='Количество работников')
-
+    is_closed = models.BooleanField(default=False)
     def __str__(self):
         return self.title
 
@@ -63,8 +63,13 @@ class Task(models.Model):
         ('submitted', 'На проверке'),
         ('done', 'Выполнена'),
     ]
-
-
+    DIFFICULTY_CHOICES = [
+           ('easy', 'Лёгкий'),
+           ('medium', 'Средний'),
+           ('hard', 'Сложный'),
+       ]
+    
+    difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES, default='medium')
     project = models.ForeignKey(Project, related_name='tasks', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     description = models.TextField()
@@ -102,3 +107,11 @@ class PersonalTask(models.Model):
 
     def __str__(self):
         return self.title
+
+class RewardItem(models.Model):
+    name = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='reward_items/')
+    price = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.name

@@ -2,20 +2,28 @@
 {% load static %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'dashboard/css/projects/participants/project_participants.css' %}">
-
+<style>
+  .avatar-img {
+  width: 85px;
+  height: 85px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+</style>
 <div class="section">
   <h3 class="section-title"><i class="fas fa-users"></i> Участники проекта</h3>
 
  <div class="participants-list">
   {% for p in participants %}
     <div class="participant-card open-profile-modal" data-id="{{ p.id }}">
-      <div class="participant-avatar">
-        {% if p.worker.photo %}
-          <img src="{{ p.worker.photo.url }}" alt="Фото" class="avatar-img">
-        {% else %}
-          нет фото
-        {% endif %}
-      </div>
+<div class="participant-avatar">
+  {% if p.worker.profile_picture %}
+    <img src="{{ p.worker.profile_picture.url }}" alt="Фото" class="avatar-img">
+  {% else %}
+    <div class="no-photo">Нет фото</div>
+  {% endif %}
+</div>
+
 <div class="participant-info">
   <div class="participant-name">{{ p.worker.get_full_name }}</div>
   <div class="participant-status

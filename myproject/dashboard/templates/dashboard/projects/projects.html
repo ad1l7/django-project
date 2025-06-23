@@ -16,6 +16,22 @@
 {% include "dashboard/includes/header.html" %}
 
 <div class="container mt-5">
+{% if messages %}
+  <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    {% for message in messages %}
+      <div class="toast show fade align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true" id="autoDismissToast">
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+
   <h2 class="mb-4 text-center">Список проектов</h2>
   <div class="row g-4">
     {% for project in projects %}
@@ -49,6 +65,9 @@
 
         <a href="{% url 'dashboard:project_overview' project.id %}" class="text-decoration-none text-dark">
           <div class="card-body project-body">
+            {% if project.is_closed %}
+  <div class="position-absolute top-0 start-0 bg-danger text-white p-1" style="z-index:10;">Завершён</div>
+{% endif %}
             <div>
               <h5 class="card-title">{{ project.title }}</h5>
               <p class="card-text">{{ project.description|truncatewords:15 }}</p>
@@ -56,7 +75,9 @@
             <ul class="list-group list-group-flush mt-2">
               <li class="list-group-item"><strong>Дедлайн:</strong> {{ project.deadline }}</li>
               <li class="list-group-item"><strong>Создано:</strong> {{ project.created_by.get_full_name }} ({{ project.created_at|date:"Y-m-d" }})</li>
-              <li class="list-group-item"><strong>Требуется работников:</strong> {{ project.required_workers }}</li>
+              <li class="list-group-item">
+  <strong>Работники:</strong> {{ project.joined_workers }} из {{ project.required_workers }}
+</li>
             </ul>
             <div class="p-3">
               <div class="d-flex justify-content-between mb-1">
@@ -143,8 +164,18 @@
   </div>
   {% endif %}
 </div>
-
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    toastElList.forEach(function (toastEl) {
+      const toast = new bootstrap.Toast(toastEl, { delay: 1200 });  // исчезает через 2 сек
+      toast.show();
+    });
+  });
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{% static 'dashboard/js/projects/projects.js' %}"></script>
+
+
 </body>
 </html>
